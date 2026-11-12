@@ -13,6 +13,9 @@
 
 ## Ce qui reste à faire, par ordre de valeur
 
+> Note de la branche A : la视频 de soumission est l livré le premier ; le
+> rapport exportable passe ensuite.
+
 1. **Le rapport exportable pour auditeur** (BE-29) — l'écran Confluence existe
    dans le manifeste, l'export reste à écrire.
 2. **La vidéo** (§28) — le récit est écrit dans `docs/JUDGES.md` et dans les
