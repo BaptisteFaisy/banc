@@ -196,6 +196,18 @@ See [`docs/HONNETETE.md`](docs/HONNETETE.md) for where each one is proved.
 
 ---
 
+## Le registre d'essai
+
+Chaque essai laisse un journal : conditions, versions, horodatages, arrêts et
+invalidations. C'est la piste d'essais datée, rejouable et opposable qu'attend
+la conformité — et ce qui permet à un auditeur de rejouer une mesure six mois
+plus tard sans croire le rapport.
+
+Le journal ne contient jamais le texte des réponses : il porte des
+**empreintes** et des **références**. Le contenu d'un cas reste dans son
+espace, et une réponse d'agent n'atterrit jamais dans une table de
+statistiques.
+
 ## Layout
 
 | Path | What |
