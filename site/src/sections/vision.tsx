@@ -8,9 +8,10 @@
  * le banc applique aux systèmes d'une organisation, démontrée ici sur un vrai
  * produit.
  *
- * La vérité est garantie par un test de grounding : chaque citation est
- * vérifiée présente dans l'extrait figé des sources, et l'extrait est scellé
- * par son empreinte SHA-256.
+ * isee est un projet **livré** : son contrat d'UI est figé, et cet extrait
+ * en est l'état final. La vérité est garantie par un test de grounding —
+ * chaque citation est vérifiée présente dans l'extrait figé, et l'extrait est
+ * scellé par son empreinte SHA-256.
  */
 import { VISION_GOLDEN } from '../../../src/seed/vision-golden.js';
 import { Section, StateChip } from '../ui';
@@ -54,9 +55,9 @@ export default function Vision() {
       </ol>
       <p className="lede">
         This is what a bench looks like when the truth is derived instead of written: the corpus
-        survives the agent, the model and the editor. If the code of SAM Vision changes, the
-        grounding test fails and names the case — the bench detects the truth drift before anyone
-        ships a wrong answer.
+        survives the agent, the model and the editor. isee is a delivered project, so this is its
+        final contract — frozen, quotable, and checkable. The grounding test keeps the corpus and
+        the sources it was derived from from ever drifting apart.
       </p>
     </Section>
   );
