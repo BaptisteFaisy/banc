@@ -18,6 +18,7 @@ import type {
 import type { SourceRegistry } from '../oracle/deps.js';
 import { hashValue } from '../oracle/hash.js';
 import { systemClock } from '../oracle/deps.js';
+import type { AgentFactory } from './real-bench.js';
 
 /** Ce qu'un client de chat OpenAI-compatible doit faire. */
 export interface ChatClient {
@@ -60,6 +61,44 @@ export function createHttpChatClient(
       return { text, tokens };
     },
   };
+}
+
+/** Client qui passe par le proxy (mode direct navigateur) : aucune clé ici. */
+export function createProxyChatClient(proxyUrl: string): ChatClient {
+  const base = proxyUrl.replace(/\/$/, '');
+  return {
+    complete: async ({ system, user }) => {
+      const response = await fetch(`${base}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ system, user }),
+      });
+      if (!response.ok) {
+        throw new Error(`proxy ${response.status} : ${await response.text().catch(() => '')}`);
+      }
+      const body = (await response.json()) as { text?: string; tokens?: number };
+      return { text: body.text ?? '', tokens: body.tokens ?? 0 };
+    },
+  };
+}
+
+/** Fabrique d'agent pour la ligne serveur (clé en environnement). */
+export function httpAgentFactory(input: {
+  readonly baseUrl: string; readonly apiKey: string; readonly model: string;
+  readonly price: PriceModel; readonly registry: SourceRegistry;
+}): AgentFactory {
+  return ({ cases, oracles, registry }) => createRealAgent({
+    chat: createHttpChatClient(input.baseUrl, input.apiKey, input.model),
+    price: input.price, cases, oracles, registry,
+  });
+}
+
+/** Fabrique d'agent pour le mode direct navigateur (via proxy). */
+export function proxyAgentFactory(input: { readonly proxyUrl: string; readonly price: PriceModel }): AgentFactory {
+  return ({ cases, oracles, registry }) => createRealAgent({
+    chat: createProxyChatClient(input.proxyUrl),
+    price: input.price, cases, oracles, registry,
+  });
 }
 
 /** Tarif déclaré : le coût est une estimation affichée, jamais muette (§17). */

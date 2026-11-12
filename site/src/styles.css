@@ -334,3 +334,11 @@ a:hover {
 .real__question { font-weight: 600; }
 .real__oracle { margin: 6px 0; font-size: 0.95rem; }
 .real__meta { font-size: 0.8rem; color: #5e6c84; }
+
+/* Barre du banc réel : bouton de rejeu direct et progression. */
+.real__toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 4px 0 20px; }
+.real__progress { font-family: ui-monospace, monospace; color: #0052CC; }
+.real__progress--err { color: #DE350B; }
+
+.run-live { font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 8px; border: 1px solid #0052CC; background: #0052CC; color: #fff; cursor: pointer; }
+.run-live:disabled { background: #b8c7e0; border-color: #b8c7e0; cursor: wait; }

@@ -7,44 +7,9 @@
  * aucune clé, aucun appel réseau vers le modèle.
  */
 import { useEffect, useState } from 'react';
-import type { BenchMode } from '../../src/domain/vocabulary.js';
+import type { RealRunRecord } from '../../src/demo/real-bench.js';
 
-/** La mesure d'un cas réel. */
-export interface RealCaseRecord {
-  id: string;
-  question: string;
-  gravity: string;
-  oracleType: string;
-  oracle: string | null;
-  oracleAlive: boolean;
-  answers: string[];
-  latencyMs: number[];
-  tokens: number[];
-  cost: number;
-  citations: number;
-  verdicts: { gauge: string; kind: string; value: number | null }[];
-  crack: string | null;
-}
-
-/** La mesure complète d'un banc réel. */
-export interface RealRunRecord {
-  meta: {
-    model: string;
-    provider: string;
-    recordedAt: string;
-    passes: number;
-    mode: BenchMode;
-    priceUsdPerThousandTokens: number;
-    note: string;
-  };
-  totals: {
-    cases: number; calls: number; tokens: number; costUsd: number;
-    latencyMeanMs: number; latencyMaxMs: number; citationsEmitted: number;
-  };
-  scorecard: { gauge: string; n: number; value: number | null; floor: number; ciLow: number | null; ciHigh: number | null }[];
-  gate: { allowed: boolean; motives: { rule: string; passed: boolean; detail: string }[] };
-  cases: RealCaseRecord[];
-}
+export type { RealRunRecord };
 
 /** État du chargement de la mesure réelle. */
 export interface RealRunState {

@@ -1,20 +1,15 @@
 /**
- * Un banc RÉEL, mesuré — la section la plus proche de l'environnement de prod.
+ * Le banc RÉEL — enregistré par défaut, rejouable EN DIRECT à la demande.
  *
- * Ce n'est pas une simulation : un vrai modèle a répondu aux cas du corpus,
- * trois fois chacun, et le banc a mesuré ses réponses avec les mêmes jauges,
- * la même porte et le même journal. Ce qui est affiché ici est la MESURE :
- * latence réelle, jetons réels, coût réel, et les verdicts que le banc en a
- * tiré.
- *
- * Un mot sur la clé : le site est statique, donc la clé InferHub ne peut pas y
- * vivre — elle serait lisible dans le bundle. Le banc se joue côté serveur
- * (`npm run demo:real`) et c'est sa mesure qui est publiée. La sécurité n'est
- * pas un détail contourné pour faire une démo : c'est la raison pour laquelle
- * la mesure est enregistrée.
+ * La clé ne quitte jamais le serveur : le mode direct appelle le proxy (r630
+ * derrière le tunnel), le proxy appelle InferHub. Le navigateur ne voit que
+ * des réponses et des mesures. Le bouton « Run live » exécute le banc réel
+ * dans la page : vraies réponses, vraie latence, vrais jetons, vraies
+ * fissures — au moment où vous regardez.
  */
 import { useRealRun } from '../use-real-run';
 import type { RealRunRecord } from '../use-real-run';
+import { useLiveRun } from '../live-run';
 import { Section, StateChip } from '../ui';
 
 /** Un état de jauge : jamais la couleur seule, toujours un mot (§25). */
@@ -33,8 +28,8 @@ function Totals({ run }: { readonly run: RealRunRecord }): JSX.Element {
       <div><dt>calls</dt><dd>{t.calls}</dd></div>
       <div><dt>tokens</dt><dd>{t.tokens.toLocaleString('en-US')}</dd></div>
       <div><dt>cost</dt><dd>${t.costUsd.toFixed(4)}</dd></div>
-      <div><dt>latency (mean)</dt><dd>{t.latencyMeanMs} ms</dd></div>
-      <div><dt>latency (max)</dt><dd>{t.latencyMaxMs} ms</dd></div>
+      <div><dt>latency (mean)</dt><dd>{Math.round(t.latencyMeanMs)} ms</dd></div>
+      <div><dt>latency (max)</dt><dd>{Math.round(t.latencyMaxMs)} ms</dd></div>
       <div><dt>passes / case</dt><dd>{run.meta.passes}</dd></div>
       <div><dt>mode</dt><dd>{run.meta.mode}</dd></div>
     </dl>
@@ -106,53 +101,65 @@ function RealAnswer({ item }: { readonly item: RealRunRecord['cases'][number] })
   );
 }
 
-/** La section : la mesure réelle, et ce qu'elle dit. */
+/** La section, avec son bouton de rejeu direct. */
 export default function RealRun() {
-  const { run, loading, error } = useRealRun();
-  if (loading) {
-    return (
-      <Section id="real-run" eyebrow="Real environment" title="A real bench run">
-        <p role="status">Loading the recorded run…</p>
-      </Section>
-    );
-  }
-  if (error || !run) {
-    return (
-      <Section id="real-run" eyebrow="Real environment" title="A real bench run">
-        <p>No recorded run yet. Produce one with <code>INFERHUB_API_KEY=… npm run demo:real</code>.</p>
-      </Section>
-    );
-  }
-  const red = run.gate.motives.filter((motive) => !motive.passed);
-  const answers = run.cases.filter((item) => ['D-01', 'R-04', 'F-01'].includes(item.id));
+  const recorded = useRealRun();
+  const live = useLiveRun();
+  const run = live.result ?? recorded.run;
+  const answers = run?.cases.filter((item) => ['D-01', 'R-04', 'F-01'].includes(item.id)) ?? [];
+  const red = run?.gate.motives.filter((motive) => !motive.passed) ?? [];
+
   return (
     <Section
       id="real-run"
       eyebrow="Real environment"
-      title="A real model answered. The bench measured. Here is the measurement."
-      intro="Twelve cases from the corpus, three passes each, one real model. Nothing here is simulated: the latency, the tokens and the cost come from the API, and the verdicts come from the same gauges the product uses."
+      title="A real model answers. The bench measures."
+      intro="Twelve cases from the corpus, three passes each. You can watch it happen: the run below is recorded, and the button replays it live through a server that holds the key — the browser never sees it."
     >
-      <Totals run={run} />
-      <RealScorecard run={run} />
-      <h3>The gate</h3>
-      <p>
-        <StateChip tone={run.gate.allowed ? 'ok' : 'bad'} label={run.gate.allowed ? 'GREEN' : 'RED'} />
-        {' '}This version would not be promoted, and the bench says exactly why:
-      </p>
-      <ul className="real__motives">
-        {red.map((motive) => (
-          <li key={motive.rule}><StateChip tone="bad" label="REFUSED" /> {motive.detail}</li>
-        ))}
-      </ul>
-      <h3>Cracks — the model is not deterministic</h3>
-      <RealCracks run={run} />
-      <h3>Two answers, against the oracle</h3>
-      {answers.map((item) => <RealAnswer key={item.id} item={item} />)}
-      <p className="lede">
-        The model found the right values, and it grounded almost nothing: it emitted
-        {' '}{run.totals.citationsEmitted} citation-like strings, and none of them resolved to a document.
-        That is the whole reason this product exists — an answer that looks right, with nothing behind it.
-      </p>
+      <div className="real__toolbar">
+        <button type="button" className="run-live" onClick={() => void live.start()} disabled={live.running}
+          aria-busy={live.running}>
+          {live.running ? 'Running the bench…' : '▶ Run live now'}
+        </button>
+        <StateChip tone={live.result ? 'ok' : 'info'} label={live.result ? 'LIVE' : 'recorded'} />
+        {live.running && live.progress && (
+          <span role="status" className="real__progress">
+            case {live.progress.done}/{live.progress.total} — {live.progress.caseId}
+          </span>
+        )}
+        {live.error && <span className="real__progress real__progress--err">{live.error}</span>}
+      </div>
+
+      {!run && recorded.loading && <p role="status">Loading the recorded run…</p>}
+      {!run && recorded.error && (
+        <p>No run yet. Produce one with <code>INFERHUB_API_KEY=… npm run demo:real</code>.</p>
+      )}
+
+      {run && (
+        <>
+          <Totals run={run} />
+          <RealScorecard run={run} />
+          <h3>The gate</h3>
+          <p>
+            <StateChip tone={run.gate.allowed ? 'ok' : 'bad'} label={run.gate.allowed ? 'GREEN' : 'RED'} />
+            {' '}This version would not be promoted, and the bench says exactly why:
+          </p>
+          <ul className="real__motives">
+            {red.map((motive) => (
+              <li key={motive.rule}><StateChip tone="bad" label="REFUSED" /> {motive.detail}</li>
+            ))}
+          </ul>
+          <h3>Cracks — the model is not deterministic</h3>
+          <RealCracks run={run} />
+          <h3>Two answers, against the oracle</h3>
+          {answers.map((item) => <RealAnswer key={item.id} item={item} />)}
+          <p className="lede">
+            The model found the right values, and grounded almost nothing: it emitted
+            {' '}{run.totals.citationsEmitted} citation-like strings, and none resolved to a document.
+            That is the whole reason this product exists.
+          </p>
+        </>
+      )}
     </Section>
   );
 }
