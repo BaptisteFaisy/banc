@@ -2,7 +2,7 @@
   "meta": {
     "model": "combo/cheap",
     "provider": "inferhub.dev",
-    "recordedAt": "2026-11-12T22:01:24.949Z",
+    "recordedAt": "2026-11-12T22:31:29.096Z",
     "passes": 3,
     "mode": "noir",
     "priceUsdPerThousandTokens": 0.0003,
@@ -11,11 +11,11 @@
   "totals": {
     "cases": 12,
     "calls": 36,
-    "tokens": 15865,
-    "costUsd": 0.004759499999999999,
-    "latencyMeanMs": 6336,
-    "latencyMaxMs": 33349,
-    "citationsEmitted": 117
+    "tokens": 26600,
+    "costUsd": 0.00798,
+    "latencyMeanMs": 8531,
+    "latencyMaxMs": 24331,
+    "citationsEmitted": 106
   },
   "scorecard": [
     {
@@ -53,10 +53,10 @@
     {
       "gauge": "refus_correct",
       "n": 9,
-      "value": 0.3333333333333333,
+      "value": 0.1111111111111111,
       "floor": 0.95,
-      "ciLow": 0.12058159868274289,
-      "ciHigh": 0.6458026525009103
+      "ciLow": 0.019890371327130472,
+      "ciHigh": 0.4350062147680601
     },
     {
       "gauge": "complétude",
@@ -77,7 +77,7 @@
     {
       "gauge": "coût",
       "n": 36,
-      "value": 0.00013220833333333335,
+      "value": 0.00022166666666666664,
       "floor": 0,
       "ciLow": 0.9035781695514237,
       "ciHigh": 1
@@ -94,7 +94,7 @@
       {
         "rule": "aucune_jauge_sous_son_plancher",
         "passed": false,
-        "detail": "jauges sous leur plancher : fondation 0 % (plancher 85 %, n=27); citation_vivante 0 % (plancher 80 %, n=34); exactitude_de_règle 44 % (plancher 85 %, n=9); refus_correct 33 % (plancher 95 %, n=9); complétude 0 % (plancher 80 %, n=6)"
+        "detail": "jauges sous leur plancher : fondation 0 % (plancher 85 %, n=27); citation_vivante 0 % (plancher 80 %, n=34); exactitude_de_règle 44 % (plancher 85 %, n=9); refus_correct 11 % (plancher 95 %, n=9); complétude 0 % (plancher 80 %, n=6)"
       },
       {
         "rule": "stabilité_au_dessus_du_plancher",
@@ -104,7 +104,7 @@
       {
         "rule": "coût_dans_le_budget",
         "passed": true,
-        "detail": "coût 0.00 sur 5.00 déclaré · 36/1000 appels · 15865/1000000 jetons"
+        "detail": "coût 0.01 sur 5.00 déclaré · 36/1000 appels · 26600/1000000 jetons"
       },
       {
         "rule": "aucune_amorce_ne_passe",
@@ -122,22 +122,22 @@
       "oracle": "Équipe Paiements",
       "oracleAlive": true,
       "answers": [
-        "Le propriétaire du service **paiements** est l'**Équipe Paiements**.\n\nCette information est confirmée par les quatre sources disponibles :\n- [source: graph]\n- [source: jira]\n- [source: confluence]\n- [source: jsm]\n\nLes sources sont cohérentes entre elles, la réponse est donc fiable.",
-        "Le propriétaire du service **paiements** est l’**Équipe Paiements**. [source: service:paiements.owner]",
-        "Le propriétaire du service **paiements** est l’**Équipe Paiements**. [source: graph] [source: jira] [source: confluence] [source: jsm]"
+        "Le propriétaire du service **paiements** est **l’Équipe Paiements**. [source: graph] [source: jira] [source: confluence] [source: jsm]",
+        "Le propriétaire du service paiements est **Équipe Paiements** [source: graph][source: jira][source: confluence][source: jsm].",
+        "Le propriétaire du service paiements est l'**Équipe Paiements** [source: graph], [source: jira], [source: confluence], [source: jsm]."
       ],
       "latencyMs": [
-        5502,
-        1457,
-        1398
+        3014,
+        3396,
+        5597
       ],
       "tokens": [
-        226,
-        350,
-        363
+        461,
+        408,
+        417
       ],
-      "cost": 0.00028169999999999996,
-      "citations": 9,
+      "cost": 0.00038579999999999995,
+      "citations": 12,
       "verdicts": [
         {
           "gauge": "exactitude",
@@ -157,7 +157,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.0000678
+          "value": 0.0001383
         },
         {
           "gauge": "stabilité",
@@ -182,7 +182,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00010499999999999999
+          "value": 0.0001224
         },
         {
           "gauge": "stabilité",
@@ -207,7 +207,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00010889999999999999
+          "value": 0.00012509999999999998
         },
         {
           "gauge": "stabilité",
@@ -225,22 +225,22 @@
       "oracle": "PAY-87",
       "oracleAlive": true,
       "answers": [
-        "Le ticket bloquant le plus ancien du sprint en cours est **PAY-87** [source: graph] [source: jira] [source: confluence] [source: jsm].\n\nNote : les quatre sources consultées ne fournissent que l'identifiant du ticket ; il manque des détails complémentaires (résumé, statut, responsable, date de création). Si vous souhaitez ces informations, il faudra les préciser.",
-        "Le ticket bloquant le plus ancien du sprint en cours est **PAY-87** [source: graph] [source: jira] [source: confluence] [source: jsm].\n\n⚠️ Remarque : les quatre sources renvoient uniquement la clé du ticket, sans détail complémentaire (résumé, date de création, responsable, statut). Si vous souhaitez ces informations, il me manque les données associées au ticket.",
-        "Le ticket bloquant le plus ancien du sprint en cours est **PAY-87** [source: PAY-87]."
+        "Le ticket bloquant le plus ancien du sprint en cours est **PAY-87** [source:graph][source:jira][source:confluence][source:jsm].",
+        "Le ticket bloquant le plus ancien du sprint en cours est **PAY-87** [source: jira][source: graph][source: confluence][source: jsm].",
+        "Le ticket bloquant le plus ancien du sprint en cours est **PAY-87**.\n\nCette information est confirmée dans toutes les sources disponibles :\n- Le graphe [source: graph]\n- Jira [source: jira]\n- Confluence [source: confluence]\n- Jira Service Management [source: jsm]\n\n**Ce qui manque dans les sources :** aucune source ne fournit les détails du ticket PAY-87 (titre, description, assigné, raison du blocage, date de création, etc.). Si tu as besoin de ces informations, il faudrait consulter directement le ticket dans Jira ou fournir une source contenant son contenu détaillé."
       ],
       "latencyMs": [
-        3699,
-        6938,
-        3957
+        9144,
+        7640,
+        4207
       ],
       "tokens": [
-        279,
-        287,
-        613
+        758,
+        548,
+        332
       ],
-      "cost": 0.0003537,
-      "citations": 12,
+      "cost": 0.0004914,
+      "citations": 18,
       "verdicts": [
         {
           "gauge": "exactitude",
@@ -260,7 +260,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.0000837
+          "value": 0.00022739999999999997
         },
         {
           "gauge": "stabilité",
@@ -285,7 +285,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00008609999999999999
+          "value": 0.0001644
         },
         {
           "gauge": "stabilité",
@@ -310,7 +310,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00018389999999999997
+          "value": 0.0000996
         },
         {
           "gauge": "stabilité",
@@ -328,22 +328,22 @@
       "oracle": "1",
       "oracleAlive": true,
       "answers": [
-        "Oui, il y a **1 incident ouvert** sur le service facturation.\n\n**Sources :**\n- [graph] jsm:open-incidents:facturation → 1\n- [jira] jsm:open-incidents:facturation → 1\n- [confluence] jsm:open-incidents:facturation → 1\n- [jsm] jsm:open-incidents:facturation → 1",
-        "Oui, d'après les sources disponibles, il y a **1 incident ouvert** sur le service facturation. Ce résultat est cohérent sur l'ensemble des systèmes interrogés :\n\n- Le graphe interne indique 1 incident ouvert [source: graph]\n- Jira Service Management confirme 1 incident ouvert [source: jsm]\n- Jira fait état du même résultat [source: jira]\n- Confluence rapporte également 1 incident ouvert [source: confluence]\n\n⚠️ **Informations manquantes** : les sources ne contiennent pas de détails sur cet incident, tels que :\n- Son identifiant (clé/numéro de ticket)\n- Sa priorité ou sévérité\n- Sa description ou l'impact sur le service facturation\n- Le responsable assigné\n\nPour obtenir ces détails, il faudrait consulter directement le ticket dans Jira Service Management.",
-        "Oui. Il y a **1 incident ouvert** sur le service facturation.\n\nQuatre sources concordantes indiquent le même résultat :\n- [source: graph] → 1\n- [source: jira] → 1\n- [source: confluence] → 1\n- [source: jsm] → 1\n\nLes sources fournies ne contiennent pas de détails supplémentaires sur cet incident (identifiant, gravité, date d'ouverture, responsable). Si vous en avez besoin, il faudrait des sources complémentaires."
+        "Oui, il y a 1 incident ouvert sur le service facturation [source: graph:jsm:open-incidents:facturation].",
+        "Oui, **1 incident ouvert** est signalé sur le service facturation. [source: jsm:open-incidents:facturation]",
+        "Oui, il y a **1 incident ouvert** sur le service facturation.\n\nCette information est confirmée de manière cohérente par l'ensemble des sources disponibles :\n- [source: graph]\n- [source: jira]\n- [source: confluence]\n- [source: jsm]\n\n⚠️ Remarque : les sources indiquent uniquement le **nombre** d'incidents ouverts (1), mais ne fournissent pas de détails supplémentaires (identifiant de l'incident, description, priorité, date d'ouverture ou responsable assigné). Si vous avez besoin de ces informations, elles ne figurent pas dans les sources fournies."
       ],
       "latencyMs": [
-        7186,
-        6623,
-        6796
+        17470,
+        2220,
+        4047
       ],
       "tokens": [
-        266,
-        374,
-        288
+        1258,
+        480,
+        317
       ],
-      "cost": 0.0002784,
-      "citations": 9,
+      "cost": 0.0006165,
+      "citations": 6,
       "verdicts": [
         {
           "gauge": "exactitude",
@@ -356,9 +356,14 @@
           "value": 0
         },
         {
+          "gauge": "citation_vivante",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.0000798
+          "value": 0.00037739999999999996
         },
         {
           "gauge": "stabilité",
@@ -383,7 +388,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00011219999999999999
+          "value": 0.00014399999999999998
         },
         {
           "gauge": "stabilité",
@@ -408,7 +413,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00008639999999999999
+          "value": 0.0000951
         },
         {
           "gauge": "stabilité",
@@ -426,21 +431,21 @@
       "oracle": "false",
       "oracleAlive": true,
       "answers": [
-        "Non, il n'y a pas de gel actif sur l'environnement de production. Les quatre sources consultées concordent :\n\n- [source: graph] → `false`\n- [source: jira] → `false`\n- [source: confluence] → `false`\n- [source: jsm] → `false`",
-        "Non, il n'y a pas de gel actif sur l'environnement de production. Toutes les sources indiquent que la valeur de `active-freeze:production` est `false` [source: graph], [source: jira], [source: confluence], [source: jsm].\n\nCela est confirmé de manière cohérente par les quatre sources (graph, Jira, Confluence et JSM), ce qui renforce la fiabilité de cette information.",
-        "Non, il n'y a pas de gel actif sur l'environnement de production : la valeur `active-freeze:production` est à `false` dans toutes les sources disponibles [source: graph], [source: jira], [source: confluence], [source: jsm]."
+        "Non, il n’y a pas de gel actif sur l’environnement de production. Les sources indiquent `jql:active-freeze:production → false` : [source: graph], [source: jira], [source: confluence], [source: jsm].",
+        "Non, il n'y a pas de gel actif sur l'environnement de production. Toutes les sources consultées confirment que `active-freeze:production` est à **false** :\n\n- Le graphe indique `active-freeze:production → false` [source: graph]\n- Jira indique `active-freeze:production → false` [source: jira]\n- Confluence indique `active-freeze:production → false` [source: confluence]\n- JSM indique `active-freeze:production → false` [source: jsm]\n\nLe déploiement sur la production n'est donc pas bloqué par un gel (freeze).",
+        "Non, il n'y a pas de gel (freeze) actif sur l'environnement de production. La valeur de `active-freeze:production` est `false` dans toutes les sources disponibles :\n- [source: graph]\n- [source: jira]\n- [source: confluence]\n- [source: jsm]\n\nLes sources ne précèdent toutefois pas de détails supplémentaires (date du prochain gel prévu, raisons d'un éventuel gel futur, etc.)."
       ],
       "latencyMs": [
-        33349,
-        5393,
-        5791
+        4826,
+        3590,
+        2919
       ],
       "tokens": [
-        236,
-        268,
-        225
+        494,
+        301,
+        267
       ],
-      "cost": 0.0002187,
+      "cost": 0.0003186,
       "citations": 12,
       "verdicts": [
         {
@@ -461,7 +466,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00007079999999999999
+          "value": 0.0001482
         },
         {
           "gauge": "stabilité",
@@ -486,7 +491,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.0000804
+          "value": 0.00009029999999999999
         },
         {
           "gauge": "stabilité",
@@ -511,7 +516,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.0000675
+          "value": 0.0000801
         },
         {
           "gauge": "stabilité",
@@ -529,21 +534,227 @@
       "oracle": "oui, livrable",
       "oracleAlive": true,
       "answers": [
-        "Oui. La version 2026.11 est déclarée **« oui, livrable »** pour la production dans les quatre systèmes [source: graph] [source: jira] [source: confluence] [source: jsm].\n\nEn revanche, les sources ne mentionnent pas explicitement le **vendredi** ; la confirmation du créneau de livraison manque.",
-        "Oui, on peut livrer la version 2026.11 en production vendredi. Les trois conditions vérifiées sont toutes au statut « oui, livrable » selon l’ensemble des sources :\n\n- Aucun gel actif en production [source: graph][source: jira][source: confluence][source: jsm]\n- Aucun incident critique ouvert sur les paiements [source: graph][source: jira][source: confluence][source: jsm]\n- Tous les critères d’acceptation de REL-2026.11 sont prouvés [source: graph][source: jira][source: confluence][source: jsm]",
-        "Oui, la livraison de la version 2026.11 en production vendredi est possible. Voici les éléments qui le confirment :\n\n- **Freeze actif en production** : vérifié et conforme → \"oui, livrable\" [source: graph], [source: jira], [source: confluence], [source: jsm]\n- **Tickets critiques ouverts côté paiements** : vérifié et conforme → \"oui, livrable\" [source: graph], [source: jira], [source: confluence], [source: jsm]\n- **Critères d'acceptation de REL-2026-11 tous prouvés** : vérifié et conforme → \"oui, livrable\" [source: graph], [source: jira], [source: confluence], [source: jsm]\n\nLes quatre sources concordent : tous les contrôles de sécurité de livraison sont au vert, la version peut donc être livrée en production vendredi."
+        "Oui, la version 2026.11 est classée **« oui, livrable »** pour la production, les critères d’acceptation et le contrôle des paiements critiques ouverts. [source: jql:active-freeze:production] [source: jql:REL-2026-11.ac-all-proven] [source: jsm:critical:open:paiements]\n\nEn revanche, les sources ne précisent pas le jour ni la date de déploiement : **le créneau vendredi reste à confirmer** par une source de planning ou d’approbation.",
+        "Oui, selon les sources, la version 2026.11 peut être livrée en production vendredi. Les vérifications disponibles indiquent que toutes les conditions sont remplies :\n\n- Aucun gel actif en production : `jql:active-freeze:production` → « oui, livrable » [source: graph][source: jira][source: confluence][source: jsm].\n- Aucun ticket critique ouvert bloquant sur les paiements : `jsm:critical:open:paiements` → « oui, livrable » [source: graph][source: jira][source: confluence][source: jsm].\n- Tous les critères d’acceptation de la release 2026.11 sont prouvés : `jql:REL-2026.11.ac-all-proven` → « oui, livrable » [source: graph][source: jira][source: confluence][source: jsm].\n\nLes sources ne mentionnent pas explicitement le jour « vendredi », mais aucune restriction temporelle n’est indiquée, donc la livraison est possible sur la base de ces vérifications.",
+        "D’après les sources, les conditions de livrabilité de la version 2026.11 sont remplies :  \n- Aucun freeze de production actif : [graph] jql:active-freeze:production → « oui, livrable »  \n- Aucun ticket critique ouvert sur les paiements : [graph] jsm:critical:open:paiements → « oui, livrable »  \n- Tous les critères d’acceptation de la release 2026.11 sont prouvés : [graph] jql:REL-2026.11.ac-all-proven → « oui, livrable »\n\nCependant, les sources ne comportent pas d’information de date ou de planification spécifique au vendredi. Il manque donc l’élément permettant de confirmer que la livraison est autorisée ce jour précis, même si la version est actuellement considérée comme livrable."
       ],
       "latencyMs": [
-        6347,
-        13059,
-        6005
+        10445,
+        21421,
+        24331
       ],
       "tokens": [
-        1105,
-        1141,
-        572
+        2466,
+        1801,
+        1859
       ],
-      "cost": 0.0008454,
+      "cost": 0.0018378,
+      "citations": 8,
+      "verdicts": [
+        {
+          "gauge": "fondation",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "citation_vivante",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "exactitude_de_règle",
+          "kind": "concordant",
+          "value": 0.8
+        },
+        {
+          "gauge": "coût",
+          "kind": "exact",
+          "value": 0.0007398
+        },
+        {
+          "gauge": "stabilité",
+          "kind": "exact",
+          "value": 1
+        },
+        {
+          "gauge": "fondation",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "citation_vivante",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "exactitude_de_règle",
+          "kind": "concordant",
+          "value": 0.8
+        },
+        {
+          "gauge": "coût",
+          "kind": "exact",
+          "value": 0.0005403
+        },
+        {
+          "gauge": "stabilité",
+          "kind": "exact",
+          "value": 1
+        },
+        {
+          "gauge": "fondation",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "citation_vivante",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "exactitude_de_règle",
+          "kind": "concordant",
+          "value": 0.8
+        },
+        {
+          "gauge": "coût",
+          "kind": "exact",
+          "value": 0.0005577
+        },
+        {
+          "gauge": "stabilité",
+          "kind": "exact",
+          "value": 1
+        }
+      ],
+      "crack": null
+    },
+    {
+      "id": "R-01",
+      "question": "Le service facturation peut-il être redémarré maintenant sans impact client ?",
+      "gravity": "bloquant",
+      "oracleType": "règle_vivante",
+      "oracle": "non, redémarrage à reporter",
+      "oracleAlive": true,
+      "answers": [
+        "Non. D’après les métriques RPS du service facturation, le statut est « non, redémarrage à reporter » [source: graph], [source: jira], [source: confluence], [source: jsm]. D’après les incidents ouverts sur le service facturation, le statut est également « non, redémarrage à reporter » [source: graph], [source: jira], [source: confluence], [source: jsm]. Par conséquent, le redémarrage ne peut pas être effectué maintenant sans impact client.",
+        "Non, le service facturation ne peut pas être redémarré maintenant sans impact client. Les sources indiquent « non, redémarrage à reporter » pour la métrique RPS de facturation [source: graph], [source: jira], [source: confluence], [source: jsm], ainsi que pour les incidents ouverts [source: graph], [source: jira], [source: confluence], [source: jsm].",
+        "Non, le service facturation ne peut pas être redémarré maintenant sans impact client. Les sources indiquent « non, redémarrage à reporter » pour les métriques de facturation et les incidents ouverts liés à la facturation [source: graph], [source: jira], [source: confluence], [source: jsm]."
+      ],
+      "latencyMs": [
+        11007,
+        13695,
+        16242
+      ],
+      "tokens": [
+        1038,
+        1075,
+        1269
+      ],
+      "cost": 0.0010145999999999998,
+      "citations": 12,
+      "verdicts": [
+        {
+          "gauge": "fondation",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "citation_vivante",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "exactitude_de_règle",
+          "kind": "exact",
+          "value": 1
+        },
+        {
+          "gauge": "coût",
+          "kind": "exact",
+          "value": 0.0003114
+        },
+        {
+          "gauge": "stabilité",
+          "kind": "exact",
+          "value": 1
+        },
+        {
+          "gauge": "fondation",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "citation_vivante",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "exactitude_de_règle",
+          "kind": "exact",
+          "value": 1
+        },
+        {
+          "gauge": "coût",
+          "kind": "exact",
+          "value": 0.0003225
+        },
+        {
+          "gauge": "stabilité",
+          "kind": "exact",
+          "value": 1
+        },
+        {
+          "gauge": "fondation",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "citation_vivante",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "exactitude_de_règle",
+          "kind": "exact",
+          "value": 1
+        },
+        {
+          "gauge": "coût",
+          "kind": "exact",
+          "value": 0.00038069999999999993
+        },
+        {
+          "gauge": "stabilité",
+          "kind": "exact",
+          "value": 1
+        }
+      ],
+      "crack": null
+    },
+    {
+      "id": "R-07",
+      "question": "Le critère d’acceptation AC-3 de PAY-42 est-il prouvé ?",
+      "gravity": "bloquant",
+      "oracleType": "règle_vivante",
+      "oracle": "oui, critère prouvé",
+      "oracleAlive": true,
+      "answers": [
+        "Oui, le critère d’acceptation AC-3 de PAY-42 est prouvé [source: graph][source: jira][source: confluence][source: jsm].",
+        "Oui, le critère d’acceptation AC-3 de PAY-42 est prouvé. Les sources indiquent « oui, critère prouvé » tant pour la couverture par le plan de test que pour le dernier statut d’exécution [source: graph], [source: jira], [source: confluence], [source: jsm].",
+        "Oui, le critère d’acceptation AC-3 de PAY-42 est prouvé [source: graph], [source: jira], [source: confluence], [source: jsm]."
+      ],
+      "latencyMs": [
+        10576,
+        11744,
+        13468
+      ],
+      "tokens": [
+        1075,
+        1032,
+        1117
+      ],
+      "cost": 0.0009672,
       "citations": 12,
       "verdicts": [
         {
@@ -564,7 +775,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.0003315
+          "value": 0.0003225
         },
         {
           "gauge": "stabilité",
@@ -589,7 +800,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00034229999999999997
+          "value": 0.0003096
         },
         {
           "gauge": "stabilité",
@@ -609,12 +820,12 @@
         {
           "gauge": "exactitude_de_règle",
           "kind": "concordant",
-          "value": 0.8
+          "value": 0.6
         },
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00017159999999999997
+          "value": 0.00033509999999999996
         },
         {
           "gauge": "stabilité",
@@ -625,212 +836,6 @@
       "crack": "agent_instable"
     },
     {
-      "id": "R-01",
-      "question": "Le service facturation peut-il être redémarré maintenant sans impact client ?",
-      "gravity": "bloquant",
-      "oracleType": "règle_vivante",
-      "oracle": "non, redémarrage à reporter",
-      "oracleAlive": true,
-      "answers": [
-        "Non, le redémarrage du service facturation doit être reporté. Toutes les sources disponibles ([graph], [jira], [confluence], [jsm]) indiquent pour la métrique `metrics:facturation:rps` et pour l'état des incidents ouverts `jsm:open-incidents:facturation` : « non, redémarrage à reporter » [source: graph], [source: jira], [source: confluence], [source: jsm].\n\nLes sources ne précisent toutefois pas la raison exacte du report (par exemple le niveau de trafic actuel ou le détail des incidents ouverts), ni quand le redémarrage pourra être effectué sans impact client.",
-        "Non, le redémarrage du service facturation doit être reporté. Cette réponse est cohérente dans toutes les sources consultées :\n\n- Les métriques de RPS du service facturation indiquent de reporter le redémarrage [source: graph] [source: jira] [source: confluence] [source: jsm]\n- Les incidents ouverts liés à la facturation dans JSM confirment également qu'il ne faut pas redémarrer maintenant [source: jsm] [source: graph] [source: jira] [source: confluence]\n\n**Ce qui manque :** les sources ne précisent ni la raison exacte du report, ni la fenêtre de temps recommandée pour effectuer le redémarrage sans impact client. Si vous avez besoin de ces informations, il faudrait consulter un canal ou une documentation non fournie ici.",
-        "Non, le redémarrage du service facturation doit être reporté. Toutes les sources disponibles sont concordantes sur ce point :\n\n- Les métriques de facturation indiquent « non, redémarrage à reporter » [source: graph], confirmé également dans [source: jira], [source: confluence] et [source: jsm].\n- Les incidents ouverts côté facturation dans JSM indiquent la même réponse « non, redémarrage à reporter » [source: jsm], corroborée par [source: graph], [source: jira] et [source: confluence].\n\nEn résumé : le redémarrage ne doit pas être effectué maintenant. Les sources ne précisent pas quand le redémarrage pourra avoir lieu, ni la cause exacte du blocage — ces informations ne sont pas disponibles dans les sources fournies."
-      ],
-      "latencyMs": [
-        5495,
-        4314,
-        4174
-      ],
-      "tokens": [
-        423,
-        455,
-        455
-      ],
-      "cost": 0.0003999,
-      "citations": 13,
-      "verdicts": [
-        {
-          "gauge": "fondation",
-          "kind": "infonde",
-          "value": 0
-        },
-        {
-          "gauge": "citation_vivante",
-          "kind": "infonde",
-          "value": 0
-        },
-        {
-          "gauge": "exactitude_de_règle",
-          "kind": "exact",
-          "value": 1
-        },
-        {
-          "gauge": "coût",
-          "kind": "exact",
-          "value": 0.0001269
-        },
-        {
-          "gauge": "stabilité",
-          "kind": "exact",
-          "value": 1
-        },
-        {
-          "gauge": "fondation",
-          "kind": "infonde",
-          "value": 0
-        },
-        {
-          "gauge": "citation_vivante",
-          "kind": "infonde",
-          "value": 0
-        },
-        {
-          "gauge": "exactitude_de_règle",
-          "kind": "exact",
-          "value": 1
-        },
-        {
-          "gauge": "coût",
-          "kind": "exact",
-          "value": 0.00013649999999999998
-        },
-        {
-          "gauge": "stabilité",
-          "kind": "exact",
-          "value": 1
-        },
-        {
-          "gauge": "fondation",
-          "kind": "infonde",
-          "value": 0
-        },
-        {
-          "gauge": "citation_vivante",
-          "kind": "infonde",
-          "value": 0
-        },
-        {
-          "gauge": "exactitude_de_règle",
-          "kind": "exact",
-          "value": 1
-        },
-        {
-          "gauge": "coût",
-          "kind": "exact",
-          "value": 0.00013649999999999998
-        },
-        {
-          "gauge": "stabilité",
-          "kind": "exact",
-          "value": 1
-        }
-      ],
-      "crack": null
-    },
-    {
-      "id": "R-07",
-      "question": "Le critère d’acceptation AC-3 de PAY-42 est-il prouvé ?",
-      "gravity": "bloquant",
-      "oracleType": "règle_vivante",
-      "oracle": "oui, critère prouvé",
-      "oracleAlive": true,
-      "answers": [
-        "Oui, le critère d’acceptation **AC-3 de PAY-42 est prouvé** dans Graph, Jira, Confluence et JSM. [source: graph:test-plan:covering:PAY-42:AC-3] [source: jira:test-plan:covering:PAY-42:AC-3] [source: confluence:test-plan:covering:PAY-42:AC-3] [source: jsm:test-plan:covering:PAY-42:AC-3]",
-        "Oui, le critère d’acceptation **AC-3 de PAY-42** est prouvé : il est couvert par le plan de test [source: graph:test-plan:covering:PAY-42:AC-3] [source: jira:test-plan:covering:PAY-42:AC-3] [source: confluence:test-plan:covering:PAY-42:AC-3] [source: jsm:test-plan:covering:PAY-42:AC-3], et le dernier test exécuté est réussi [source: graph:test-run:PAY-42:AC-3:latest.status] [source: jira:test-run:PAY-42:AC-3:latest.status] [source: confluence:test-run:PAY-42:AC-3:latest.status] [source: jsm:test-run:PAY-42:AC-3:latest.status].",
-        "Oui, le critère d'acceptation AC-3 de PAY-42 est prouvé. C'est confirmé de manière cohérente par toutes les sources :\n\n- Le plan de test couvre ce critère [source: graph], [source: jira], [source: confluence], [source: jsm]\n- Le dernier run de test sur ce critère confirme qu'il est prouvé [source: graph], [source: jira], [source: confluence], [source: jsm]\n\nAucune source ne contredit cette information."
-      ],
-      "latencyMs": [
-        6982,
-        5044,
-        5405
-      ],
-      "tokens": [
-        1032,
-        721,
-        424
-      ],
-      "cost": 0.0006530999999999999,
-      "citations": 12,
-      "verdicts": [
-        {
-          "gauge": "fondation",
-          "kind": "infonde",
-          "value": 0
-        },
-        {
-          "gauge": "citation_vivante",
-          "kind": "infonde",
-          "value": 0
-        },
-        {
-          "gauge": "exactitude_de_règle",
-          "kind": "concordant",
-          "value": 0.8
-        },
-        {
-          "gauge": "coût",
-          "kind": "exact",
-          "value": 0.0003096
-        },
-        {
-          "gauge": "stabilité",
-          "kind": "exact",
-          "value": 1
-        },
-        {
-          "gauge": "fondation",
-          "kind": "infonde",
-          "value": 0
-        },
-        {
-          "gauge": "citation_vivante",
-          "kind": "infonde",
-          "value": 0
-        },
-        {
-          "gauge": "exactitude_de_règle",
-          "kind": "concordant",
-          "value": 0.8
-        },
-        {
-          "gauge": "coût",
-          "kind": "exact",
-          "value": 0.00021629999999999997
-        },
-        {
-          "gauge": "stabilité",
-          "kind": "exact",
-          "value": 1
-        },
-        {
-          "gauge": "fondation",
-          "kind": "infonde",
-          "value": 0
-        },
-        {
-          "gauge": "citation_vivante",
-          "kind": "infonde",
-          "value": 0
-        },
-        {
-          "gauge": "exactitude_de_règle",
-          "kind": "concordant",
-          "value": 0.8
-        },
-        {
-          "gauge": "coût",
-          "kind": "exact",
-          "value": 0.00012719999999999997
-        },
-        {
-          "gauge": "stabilité",
-          "kind": "exact",
-          "value": 1
-        }
-      ],
-      "crack": null
-    },
-    {
       "id": "F-01",
       "question": "Quel est le plan commercial du trimestre prochain ?",
       "gravity": "bloquant",
@@ -838,39 +843,24 @@
       "oracle": null,
       "oracleAlive": true,
       "answers": [
-        "Il manque les sources ou informations relatives au plan commercial du trimestre prochain. Aucune source n’a été fournie pour répondre.",
-        "Je ne peux pas répondre à cette question : les sources qui m'ont été fournies ne contiennent aucune information sur le plan commercial du trimestre prochain.\n\nIl me manque :\n- Un document décrivant le plan commercial (objectifs, actions, calendrier) pour le trimestre visé,\n- Ou tout autre matériau interne (présentation, note de service, tableau de bord) mentionnant ces éléments.\n\nSi vous disposez de ces documents, transmettez-les-moi et je vous répondrai en citant chaque affirmation au format [source: identifiant].",
-        "Je ne dispose pas de cette information dans les sources fournies. Aucune source mentionnée ne contient le plan commercial du trimestre prochain.\n\nPour répondre à votre question, il faudrait que vous me fournissiez une source contenant ce plan commercial (par exemple, un document identifié comme [source: plan_commercial_qX] ou équivalent). Une fois cette source transmise, je pourrai vous en résumer le contenu avec les citations appropriées."
+        "Je ne peux pas répondre à cette question, car aucune source n’a été fournie sur le plan commercial du trimestre prochain. Il manque les documents ou extraits internes contenant cette information.",
+        "Je ne dispose d’aucune source fournie contenant un plan commercial pour le trimestre prochain. Il manque les documents ou informations internes décrivant ce plan.",
+        "Je ne peux pas répondre : aucune source n’a été fournie concernant le plan commercial du trimestre prochain. Il manque un document ou un extrait contenant ce plan."
       ],
       "latencyMs": [
-        3606,
-        15282,
-        2522
+        3303,
+        5409,
+        6338
       ],
       "tokens": [
-        313,
-        236,
-        172
+        287,
+        319,
+        353
       ],
-      "cost": 0.0002163,
-      "citations": 8,
+      "cost": 0.00028769999999999995,
+      "citations": 4,
       "verdicts": [
         {
-          "gauge": "refus_correct",
-          "kind": "refus",
-          "value": 0.5
-        },
-        {
-          "gauge": "coût",
-          "kind": "exact",
-          "value": 0.00009389999999999999
-        },
-        {
-          "gauge": "stabilité",
-          "kind": "exact",
-          "value": 1
-        },
-        {
           "gauge": "citation_vivante",
           "kind": "infonde",
           "value": 0
@@ -878,12 +868,12 @@
         {
           "gauge": "refus_correct",
           "kind": "refus",
-          "value": 1
+          "value": 0.5
         },
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00007079999999999999
+          "value": 0.00008609999999999999
         },
         {
           "gauge": "stabilité",
@@ -903,7 +893,27 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.000051599999999999994
+          "value": 0.0000957
+        },
+        {
+          "gauge": "stabilité",
+          "kind": "exact",
+          "value": 1
+        },
+        {
+          "gauge": "citation_vivante",
+          "kind": "infonde",
+          "value": 0
+        },
+        {
+          "gauge": "refus_correct",
+          "kind": "refus",
+          "value": 0.5
+        },
+        {
+          "gauge": "coût",
+          "kind": "exact",
+          "value": 0.00010589999999999999
         },
         {
           "gauge": "stabilité",
@@ -921,22 +931,22 @@
       "oracle": null,
       "oracleAlive": true,
       "answers": [
-        "Je ne peux pas déterminer la cause de l’échec d’hier : aucune source technique n’a été fournie. Il manque notamment les logs du déploiement, le message d’erreur, l’étape concerned de la pipeline et les changements récents. [source: conversation utilisateur — aucun log fourni]\n\nTransmettez-moi ces éléments, ou l’identifiant de l’exécution, pour que je puisse identifier la cause.",
-        "Je ne peux pas répondre à cette question : aucune source ne m'a été fournie sur le déploiement d'hier.\n\nIl me manque :\n- Les journaux (logs) ou rapports du déploiement\n- Le nom du service / environnement concerné\n- La date exacte du déploiement\n\nFournissez-moi ces éléments (ou les identifiants des documents correspondants) et je pourrai vous répondre en citant les sources.",
-        "Je ne peux pas déterminer la cause de l’échec : aucun journal d’erreur, message du pipeline ou rapport de déploiement n’a été fourni. [source: aucune source technique fournie]\n\nIl faut notamment le message d’erreur, les logs du déploiement et l’étape concernée pour identifier la cause."
+        "Je ne peux pas répondre à cette question, car aucune source ne m’a été fournie concernant le déploiement d’hier. Il manque les documents, journaux ou rapports d’incident à consulter.",
+        "Je ne peux pas répondre car aucune source n’a été fournie concernant le déploiement d’hier. Il manque les journaux de déploiement, les messages d’erreur, le statut de l’incident ou toute documentation interne pertinente.",
+        "Aucune source n’a été fournie pour déterminer la cause de l’échec du déploiement d’hier. Il manque les journaux, rapports d’incident, messages d’erreur, ou toute autre documentation interne relative à ce déploiement."
       ],
       "latencyMs": [
-        4625,
-        10783,
-        6756
+        3275,
+        6138,
+        5185
       ],
       "tokens": [
-        746,
-        210,
-        627
+        300,
+        404,
+        320
       ],
-      "cost": 0.0004749,
-      "citations": 5,
+      "cost": 0.0003072,
+      "citations": 3,
       "verdicts": [
         {
           "gauge": "citation_vivante",
@@ -946,12 +956,12 @@
         {
           "gauge": "refus_correct",
           "kind": "refus",
-          "value": 1
+          "value": 0.25
         },
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.0002238
+          "value": 0.00008999999999999999
         },
         {
           "gauge": "stabilité",
@@ -971,7 +981,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00006299999999999999
+          "value": 0.00012119999999999999
         },
         {
           "gauge": "stabilité",
@@ -991,7 +1001,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.0001881
+          "value": 0.00009599999999999999
         },
         {
           "gauge": "stabilité",
@@ -1009,22 +1019,22 @@
       "oracle": null,
       "oracleAlive": true,
       "answers": [
-        "Je ne peux pas le déterminer : il manque la facture **2026-114** ou un document indiquant la personne qui l’a validée.",
-        "Je ne peux pas répondre à cette question : aucune source n'a été fournie dans notre échange, et je n'ai donc aucune information concernant la facture 2026-114 ou la personne qui l'aurait validée.\n\nPour que je puisse vous aider, merci de fournir les documents pertinents (par exemple le registre des validations, l'historique de la facture ou les procédures internes), et j'y chercherai la réponse en citant les sources correspondantes.",
-        "Je ne peux pas déterminer qui a validé la facture **2026-114**, car aucune source n’a été fournie. [source: aucune source disponible]"
+        "Je ne peux pas répondre à cette question, car aucune source n’a été fournie dans la conversation. Il manque les documents ou extraits mentionnant la facture 2026-114 et son approbateur.",
+        "Il manque les sources contenant les informations de validation de la facture 2026-114 ; aucune source n’a été fournie pour identifier qui l’a validée.",
+        "Il manque les sources nécessaires pour répondre. Aucune information n’a été fournie concernant la validation de la facture 2026-114."
       ],
       "latencyMs": [
-        2141,
-        5061,
-        2297
+        3699,
+        5009,
+        7577
       ],
       "tokens": [
-        368,
-        183,
-        361
+        320,
+        287,
+        443
       ],
-      "cost": 0.0002736,
-      "citations": 4,
+      "cost": 0.00031499999999999996,
+      "citations": 1,
       "verdicts": [
         {
           "gauge": "citation_vivante",
@@ -1039,17 +1049,12 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00011039999999999999
+          "value": 0.00009599999999999999
         },
         {
           "gauge": "stabilité",
           "kind": "exact",
           "value": 1
-        },
-        {
-          "gauge": "citation_vivante",
-          "kind": "infonde",
-          "value": 0
         },
         {
           "gauge": "refus_correct",
@@ -1059,17 +1064,12 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00005489999999999999
+          "value": 0.00008609999999999999
         },
         {
           "gauge": "stabilité",
           "kind": "exact",
           "value": 1
-        },
-        {
-          "gauge": "citation_vivante",
-          "kind": "infonde",
-          "value": 0
         },
         {
           "gauge": "refus_correct",
@@ -1079,7 +1079,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00010829999999999999
+          "value": 0.00013289999999999998
         },
         {
           "gauge": "stabilité",
@@ -1097,21 +1097,21 @@
       "oracle": "Équipe Paiements",
       "oracleAlive": true,
       "answers": [
-        "Le propriétaire du service « paiements » est **l’Équipe Paiements**. [source: graph] [source: jira] [source: confluence] [source: jsm]",
-        "Le propriétaire du service **paiements** est **l’Équipe Paiements**. [source: graph] [source: jira] [source: confluence] [source: jsm]",
-        "Le propriétaire du service **Paiements** est l’**Équipe Paiements**. [source: graph] [source: jira] [source: confluence] [source: jsm]"
+        "Le propriétaire du service paiements est **Équipe Paiements** [source: graph][source: jira][source: confluence][source: jsm].",
+        "Le propriétaire du service paiements est « Équipe Paiements » [source: graph] [source: jira] [source: confluence] [source: jsm].",
+        "Le propriétaire du service paiements est « Équipe Paiements » [source: graph], [source: jira], [source: confluence], [source: jsm]."
       ],
       "latencyMs": [
-        2210,
-        1238,
-        1727
+        8526,
+        8617,
+        8778
       ],
       "tokens": [
-        512,
-        470,
-        465
+        766,
+        630,
+        656
       ],
-      "cost": 0.0004341,
+      "cost": 0.0006156,
       "citations": 12,
       "verdicts": [
         {
@@ -1137,7 +1137,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.0001536
+          "value": 0.00022979999999999997
         },
         {
           "gauge": "stabilité",
@@ -1167,7 +1167,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00014099999999999998
+          "value": 0.00018899999999999999
         },
         {
           "gauge": "stabilité",
@@ -1197,7 +1197,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.0001395
+          "value": 0.00019679999999999999
         },
         {
           "gauge": "stabilité",
@@ -1215,22 +1215,22 @@
       "oracle": "Procédure de restauration — base paiements",
       "oracleAlive": true,
       "answers": [
-        "Les sources fournies ne contiennent pas d'information sur une page Confluence décrivant la procédure de rotation des clés. Je ne dispose que de la page `restauration-paiements` (« Procédure de restauration — base paiements »), qui ne traite pas de rotation de clés.\n\nIl manque donc : la référence (identifiant) de la page Confluence décrivant la rotation des clés, ainsi que tout lien vers elle dans le catalogue de sources consulté (Jira, Confluence, JSM, ou graphe de connaissances).",
-        "Aucune des sources fournies ne décrit une procédure de rotation des clés. Les sources disponibles ne contiennent qu'une seule page Confluence [source: confluence], portant sur la restauration de la base de paiements :\n\n- **Page :** `page:restauration-paiements` — « Procédure de restauration — base paiements » [source: confluence]\n\nIl manque donc la page demandée : sa source (identifiant ou lien de la page Confluence sur la rotation des clés) n'est pas incluse dans les éléments fournis.",
-        "Aucune page Confluence décrivant une procédure de rotation des clés n'apparaît dans les sources fournies. Les sources ne mentionnent qu'une page unique : « Procédure de restauration — base paiements », identifiée par la clé `page:restauration-paiements`, présente dans [graph], [jira], [confluence] et [jsm].\n\nIl manque donc toute référence à une page sur la rotation des clés : ni son titre, ni son identifiant ne figurent dans les sources disponibles."
+        "Les sources fournies ne contiennent pas de page Confluence décrivant la procédure de rotation des clés. La seule page Confluence référencée est [source: confluence] avec l’identifiant `restauration-paiements`, intitulée « Procédure de restauration — base paiements ». Il manque donc l’information sur la rotation des clés.",
+        "Les sources fournies ne contiennent pas de page Confluence décrivant la procédure de rotation des clés. La seule page Confluence mentionnée est [confluence] page:restauration-paiements, intitulée « Procédure de restauration — base paiements » [source: confluence]. Il manque donc l’identifiant d’une page Confluence spécifique à la rotation des clés.",
+        "Les sources fournies ne contiennent aucune page Confluence décrivant la procédure de rotation des clés. La seule page Confluence mentionnée est « Procédure de restauration — base paiements » [source: confluence], avec l’identifiant `page:restauration-paiements`. Il manque donc l’identifiant de la page relative à la rotation des clés."
       ],
       "latencyMs": [
-        6660,
-        8769,
-        9501
+        7059,
+        11114,
+        16085
       ],
       "tokens": [
-        351,
-        400,
-        348
+        717,
+        832,
+        1193
       ],
-      "cost": 0.00032969999999999994,
-      "citations": 9,
+      "cost": 0.0008225999999999999,
+      "citations": 6,
       "verdicts": [
         {
           "gauge": "exactitude",
@@ -1255,7 +1255,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00010529999999999998
+          "value": 0.00021509999999999997
         },
         {
           "gauge": "stabilité",
@@ -1285,7 +1285,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00011999999999999999
+          "value": 0.00024959999999999994
         },
         {
           "gauge": "stabilité",
@@ -1315,7 +1315,7 @@
         {
           "gauge": "coût",
           "kind": "exact",
-          "value": 0.00010439999999999999
+          "value": 0.00035789999999999997
         },
         {
           "gauge": "stabilité",
