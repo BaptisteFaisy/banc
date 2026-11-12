@@ -1,0 +1,415 @@
+# Banc — the agent test bench · manifeste Forge
+#
+# App Atlassian Forge (UI Kit 2 / React) installée sur Jira (requis) et
+# Confluence (optionnel, pour le rapport d'essai exportable). Chaque module
+# cite la section du cahier des charges qui le motive, et le fichier source
+# qui l'implémente — un module sans § derrière est un module à retirer.
+#
+# Contraintes de la plateforme vérifiées le 11 nov. 2026 (§24) :
+#   · une action dure 55 s, une fonction 25 s, un consumer 900 s ;
+#   · `rovo:mcp` est en Preview : un seul module par app, 50 outils au plus ;
+#   · 5 déclencheurs planifiés au plus, un seul à 5 minutes ;
+#   · le Cypher brut est refusé aux nouvelles apps : requêtes prêtes uniquement ;
+#   · un droit manquant sur le graphe vide le résultat SANS erreur (§21).
+#
+# Garde hors ligne : `node tools/check-manifest.mjs` (étape de `ci.yml`).
+
+app:
+  # UUID v4 de forme valide : `forge lint` refuse un ARI dont l'appId n'a pas
+  # cette forme. `forge create` le remplace par l'identifiant réel à
+  # l'enregistrement de l'app.
+  id: ari:cloud:ecosystem::app/3f7c1d92-8b4a-4e6f-9c21-5ab70d4e1f88
+  name: Banc — the agent test bench
+  description: >-
+    A test bench for Rovo agents. Questions are asked whose truth is derived
+    from your own systems — recomputed on every run, never typed by hand —
+    replayed against each version of the agent, so a regression is caught
+    before a customer finds it. Three oracle shapes (derived value, living
+    rule, expected refusal), eight gauges with sample size and confidence
+    interval, a promotion gate, and the distinction every evaluation
+    framework forgets: truth drift is not an agent regression.
+  runtime:
+    name: nodejs22.x
+    architecture: x86_64
+    memoryMB: 512
+  compatibility:
+    jira:
+      required: true
+    confluence:
+      required: false
+
+modules:
+  # ------------------------------------------------------- outils MCP (§19)
+  # Preview : un seul module `rovo:mcp` par app, 50 outils au plus. Les 12
+  # outils ci-dessous sont la table exacte du §19 ; la source de vérité est
+  # `src/mcp/tools.ts`, et un test de contrat (`tests/mcp/tools.test.ts`)
+  # vérifie que les deux restent alignés.
+  #
+  # Règle de sécurité (§19) : aucun outil n'expose le contenu d'un cas à un
+  # agent non autorisé — le filtrage par espace du banc et par droits du
+  # lecteur est appliqué dans `src/mcp/guard.ts`, AVANT tout accès aux données.
+  rovo:mcp:
+    - key: banc-mcp
+      name: Banc test bench tools
+      description: Run the bench, read scorecards, list regressions, check the promotion gate.
+      tools:
+        - key: run-bench
+          name: run-bench
+          description: >-
+            Start a bench run on an agent version. A long run is sliced into
+            900 s chunks with a cursor: this tool creates the run and returns
+            progress and budget consumed, it does not finish it in one call
+            (an action lasts 55 s).
+          action: run-bench
+        - key: get-scorecard
+          name: get-scorecard
+          description: >-
+            Scorecard of a version: the eight gauges, each with its sample
+            size, confidence interval and floor, plus deltas to the witness
+            and the dead-oracle rate. Below the sample threshold the gauge
+            reads "not enough data" instead of a percentage.
+          action: get-scorecard
+        - key: list-regressions
+          name: list-regressions
+          description: >-
+            Cases that regressed between two versions, with answer, oracle and
+            sources. Truth drifts are reported separately: the truth changed,
+            the agent is not at fault.
+          action: list-regressions
+        - key: compare-versions
+          name: compare-versions
+          description: Verdict diff between two versions, and cases cracked in both.
+          action: compare-versions
+        - key: get-case
+          name: get-case
+          description: "The plate of a case: question, oracle, gravity, truth history."
+          action: get-case
+        - key: list-cases
+          name: list-cases
+          description: >-
+            Filtered corpus. Cases are filtered by the bench space and by the
+            reader's rights: an unauthorized reader gets an explicit error,
+            never an empty list that could be read as "no cases".
+          action: list-cases
+        - key: check-promotion
+          name: check-promotion
+          description: >-
+            Verdict of the promotion gate, with the motives of the refusal.
+            The gate refuses by naming the motive, never silently.
+          action: check-promotion
+        - key: get-stability
+          name: get-stability
+          description: >-
+            Crack rate and unstable cases, with attribution: badly written case
+            or unstable agent. Below the sample threshold, "not enough data".
+          action: get-stability
+        - key: get-oracle-health
+          name: get-oracle-health
+          description: >-
+            Dead oracles, recent drifts, corpus coverage. Distinguishes "no
+            right" from "no data": a bench with a third of its oracles dead is
+            worthless, and the product says so.
+          action: get-oracle-health
+        - key: propose-case
+          name: propose-case
+          description: >-
+            Propose a case from a real ticket or a question. The candidate
+            oracle always needs human validation: the bench never decides the
+            truth alone.
+          action: propose-case
+        - key: record-judgment
+          name: record-judgment
+          description: >-
+            Human jury vote. The agent under test can neither self-evaluate nor
+            attest: the human jury is the only appeal authority.
+          action: record-judgment
+        - key: get-run-log
+          name: get-run-log
+          description: >-
+            Complete, replayable run log: conditions, versions, timestamps,
+            stops and invalidations. This is the auditable trail.
+          action: get-run-log
+
+  # ------------------------------------------------- agent Rovo « Le jury » (§19)
+  # Il explique une régression en clair, sans JAMAIS qualifier lui-même la
+  # réponse : séparation des rôles (§25). L'agent sous test ne s'auto-évalue
+  # pas, et le jury n'invente pas de verdict — il lit ceux du banc.
+  rovo:agent:
+    - key: the-jury
+      name: Le jury
+      description: >-
+        Explains what regressed between two agent versions, in plain words,
+        from the bench measurements only. It never grades an answer itself:
+        verdicts come from the bench, and the human jury is the only appeal.
+      prompt: resource:prompt;jury
+      conversationStarters:
+        - What regressed between version 4 and version 5?
+        - Which are the three most cracked cases, and what did the agent answer each time?
+        - Can we promote version 6? Why not?
+        - Are our oracles still valid? Which ones drifted this month?
+        - Show me the failure on case R-04, with the agent answer and the expected rule.
+      actions:
+        - get-scorecard
+        - list-regressions
+        - compare-versions
+        - get-case
+        - check-promotion
+        - get-stability
+        - get-oracle-health
+        - get-run-log
+
+  # --------------------------------------------------------- skill (§19, §20)
+  # Publiée en source ouverte : réutilisable par les agents tiers.
+  rovo:skill:
+    - key: before-promoting-an-agent
+      name: before-promoting-an-agent
+      description: >-
+        Before pushing an agent version: run the gold suite, do not promote on
+        a red gate, check truth drift before blaming a regression, never
+        conclude on a single case, and record the fingerprint of the tested
+        configuration.
+      resource: skill-before-promoting
+
+  # ------------------------------------------------------------- actions (§21)
+  # Une action dure 55 s : un essai est une série d'appels, jamais un appel
+  # unique. Chaque outil MCP a son action, plus les actions d'écran.
+  action:
+    - key: run-bench
+      function: main
+    - key: get-scorecard
+      function: main
+    - key: list-regressions
+      function: main
+    - key: compare-versions
+      function: main
+    - key: get-case
+      function: main
+    - key: list-cases
+      function: main
+    - key: check-promotion
+      function: main
+    - key: get-stability
+      function: main
+    - key: get-oracle-health
+      function: main
+    - key: propose-case
+      function: main
+    - key: record-judgment
+      function: main
+    - key: get-run-log
+      function: main
+
+  # ------------------------------------------------------- écrans Jira (§20)
+  # Écran 1 : le banc. Un agent sous test, sa version gravée sur la plaque.
+  jira:globalPage:
+    - key: bench
+      title: Banc
+      resource: main
+      resolver:
+        function: resolver
+      render: native
+      icon: resource:icon;icon.svg
+
+  # Corpus par projet, cas bloquants du lot d'or.
+  jira:projectPage:
+    - key: corpus
+      title: Corpus du banc
+      resource: main
+      resolver:
+        function: resolver
+      render: native
+
+  # État d'un cas, régressions du ticket (§20 écran 4).
+  jira:issuePanel:
+    - key: case-panel
+      title: Banc
+      resource: main
+      resolver:
+        function: resolver
+      render: native
+      icon: resource:icon;icon.svg
+
+  # ------------------------------------------- la porte, verrou de workflow (§11)
+  # Le ticket de la nouvelle version ne peut PAS passer en « approuvé » si la
+  # porte est rouge. C'est ce qui fait passer le produit d'une curiosité à une
+  # infrastructure : la mesure devient une condition, pas une information.
+  jira:workflowValidator:
+    - key: promotion-gate
+      name: Porte de promotion du banc
+      description: Blocks the transition while the gold suite is red or a gauge is below its floor.
+      function: validatePromotion
+      projectTypes:
+        - company-managed
+        - team-managed
+
+  # Champs personnalisés (§21) : ce qui rend la mesure lisible dans Jira.
+  jira:customField:
+    - key: blocking-case
+      name: Cas bloquant
+      description: Ce cas fait partie du lot d'or et doit passer pour promouvoir.
+      type: boolean
+    - key: agent-version
+      name: Version d'agent
+      description: Version testée par le banc pour ce ticket.
+      type: string
+    - key: spec-fingerprint
+      name: Empreinte
+      description: Empreinte de la configuration testée (§13) — sans elle, le résultat n'est attribuable à aucune version.
+      type: string
+
+  # Compteur de régressions et santé du banc (§20).
+  jira:dashboardGadget:
+    - key: bench-health
+      title: Santé du banc
+      resource: main
+      resolver:
+        function: resolver
+
+  # ------------------------------------------- rapport exportable Confluence (§20)
+  # Pour l'auditeur : une piste d'essais datée, rejouable, opposable (§3).
+  confluence:globalPage:
+    - key: run-report
+      title: Rapport d'essai du banc
+      resource: main
+      resolver:
+        function: resolver
+      render: native
+
+  # Règles du banc par espace (§16) : quels espaces sont dans le périmètre.
+  confluence:spaceSettingsPage:
+    - key: bench-space-settings
+      title: Règles du banc
+      resource: main
+      resolver:
+        function: resolver
+      render: native
+
+  # --------------------------------------------------------- déclencheurs (§21)
+  trigger:
+    - key: case-created
+      function: onCaseCreated
+    - key: issue-linked
+      function: onIssueLinked
+    - key: agent-version-changed
+      function: onAgentVersionChanged
+
+  # Limite plateforme : 5 déclencheurs planifiés au plus, UN SEUL à 5 minutes
+  # (§21, §24). Trois sont déclarés — la marge reste disponible.
+  scheduledTrigger:
+    - key: smoke-on-version
+      function: runSmoke
+      interval: "5m      # le seul rapide : fumée sur événement de version"
+    - key: full-suite-nightly
+      function: runFullSuite
+      interval: 1d      # la nuit, par tranches de 900 s avec reprise (§17)
+    - key: oracle-health-weekly
+      function: watchOracleHealth
+      interval: "1w      # veille : le référentiel se périme (§28)"
+
+  # Essais longs : 900 s par tranche, avec curseur de reprise (§17, §21).
+  consumer:
+    - key: run-slices
+      function: consumeRunSlice
+      maxConcurrency: 5
+      retries:
+        maxAttempts: 3
+
+  # Points d'entrée externes : CI et hooks d'agents (§21).
+  webtrigger:
+    - key: ci-smoke
+      function: ciSmoke
+
+  # ------------------------------------------------------------ données (§22)
+  # 16 tables. Le DDL complet (types, clés primaires, index) vit dans
+  # `src/db/schema.ts` ; la déclaration ci-dessous est celle que Forge lit.
+  # Aucune table ne contient de donnée métier sensible du site : les cas sont
+  # des questions et des oracles, pas des extraits de production.
+  sql:
+    tables:
+      - name: agent
+        columns: [id, name, rovo_ref, owner_ref, suite_kind, created_at]
+      - name: agent_version
+        columns: [id, agent_id, label, spec_hash, prompt_hash, skills_json, actions_json, tools_json, model, temperature, created_at, is_witness]
+      - name: case
+        columns: [id, space_key, question, oracle_type, oracle_spec_json, gravity, tags_json, rubric_json, created_at, created_by_ref, origin_ref, disabled_at]
+      - name: oracle_state
+        columns: [case_id, version_no, value_hash, value_json, computed_at, source_refs_json, alive, dead_reason, drift_at]
+      - name: condition
+        columns: [id, case_id, snapshot_hash, snapshot_json_ref, captured_at, mode]
+      - name: suite
+        columns: [id, name, kind, case_ids_json, version, updated_at]
+      - name: run
+        columns: [id, agent_version_id, suite_id, mode, passes, started_at, finished_at, state, budget_used_json, config_hash_at_end, invalidated_reason, cursor, condition_hash]
+      - name: pass
+        # `answer_ref` et `answer_hash`, jamais le texte : le contenu d'une
+        # réponse ne vit pas dans une table de statistiques (§21).
+        columns: [id, run_id, case_id, passage_no, answer_hash, answer_ref, latency_ms, tokens, cost_estimate, tool_calls_json, side_effects_json]
+      - name: verdict
+        columns: [id, pass_id, case_id, gauge, kind, value, detail_json, evidence_json, computed_at]
+      - name: scorecard
+        columns: [id, agent_version_id, suite_id, mode, gauge, n, value, ci_low, ci_high, floor, computed_at]
+      - name: regression
+        columns: [id, agent_version_id, baseline_version_id, case_id, gauge, delta, kind, opened_at, state]
+      - name: fissure
+        columns: [id, case_id, agent_version_id, passages, spread_json, attribution, state, opened_at]
+      - name: judgment
+        columns: [id, case_id, judge_ref, verdict, notes, at, sample_id]
+      - name: calibration
+        columns: [scope, gauge, n, auto_vs_human_agreement, inter_judge_agreement, threshold, calibrated, computed_at]
+      - name: amorce
+        columns: [id, case_id, kind, expected_behavior, blocking]
+      - name: budget
+        columns: [scope, period, calls, tokens, cost_estimate, limit_calls, limit_tokens, limit_cost, stopped_at]
+
+  # --------------------------------------------------------- LLM hébergé (§24)
+  # Sobriété (§25) : le LLM ne sert qu'à deux choses, et chaque appel est mis
+  # en cache par empreinte de contenu. Tout le reste du jugement est
+  # déterministe — un correcteur non reproductible rendrait la mesure
+  # impossible à rejouer.
+  llm:
+    - key: implication
+      # Modèle léger : vérification qu'une citation contient réellement
+      # l'affirmation (jauge « citation vivante », §8).
+      model: haiku
+    - key: proposal
+      # Modèle plus fort : proposition de cas depuis un ticket réel (§24, BE-24).
+      model: sonnet
+
+resources:
+  - key: main
+    path: src/ui/index.ts
+  - key: icon
+    path: static/icon.svg
+  - key: prompt
+    path: static/prompts/jury.md
+  - key: skill-before-promoting
+    path: SKILL.md
+
+permissions:
+  scopes:
+    # Lecture Jira et Confluence ; écriture limitée aux champs du banc et aux
+    # commentaires de la porte. Le banc ne modifie jamais un ticket métier (§16).
+    - read:document:confluence
+    - read:space:confluence
+    - read:work-item:jira
+    - read:project:jira
+    - read:issue.details:jira
+    - read:comment:jira
+    - read:user:identity
+    - read:software-service:compass
+    # Teamwork Graph en lecture (Preview, §24) : un droit par type d'objet, et
+    # un droit manquant vide le résultat sans erreur — d'où l'écran de santé
+    # des oracles qui distingue « pas de droit » de « pas de données » (§21).
+    # Formes à valider avec `forge lint`.
+    - read:document:graph
+    - read:test-plan:graph
+    - read:test-run:graph
+    - read:test-execution:graph
+    - read:test-status:graph
+    - read:pull-request:graph
+    - read:deployment:graph
+    - read:commit:graph
+  external:
+    # Aucun chargement distant dans les interfaces (§21) : pas de police, pas
+    # d'image, pas de script tiers. Le site public obéit à la même règle.
+    images: []
