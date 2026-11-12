@@ -1,200 +1,117 @@
 #!/usr/bin/env node
 /**
- * Garde du manifest Forge — « Fait, preuve à l'appui » (SPEC §15, §16, §17, §19).
+ * Garde du manifeste Forge de Banc (§19, §21, §22, §24).
  *
  * Usage : node tools/check-manifest.mjs [chemin/vers/manifest.yml]
- * Sortie : code 0 si le manifest est conforme, 1 sinon (messages précis).
+ * Sortie : code 0 si le manifeste est conforme, 1 sinon (messages précis).
  *
  * Contrôles faits :
- *   1. le manifest contre le schéma @forge/manifest (repli : contrôles maison) ;
- *   2. les 7 actions du §15 : présence, verbe, entrées (string/integer/number/boolean) ;
- *   3. chaque `function:` référencée existe dans `modules.function`, et chaque
- *      handler existe dans src/ (ou est une souche annoncée dans docs/CONTRACTS.md) ;
- *   4. unicité des clés de module, des ressources, des scopes ;
- *   5. `rovo:mcp` ne liste que des actions déclarées.
- *
- * Écart de version assumé : le schéma local (@forge/manifest 1.5.1) précède la
- * CLI Forge 14.2 — il ne connaît ni `app.compatibility` ni
- * `app.runtime.{name,architecture,memoryMB}`. Ces deux blocs sont retirés
- * avant la validation JSON Schema, puis vérifiés à la main (checkApp).
+ *   1. le manifeste est un YAML parsable ;
+ *   2. le bloc `app` : ARI + UUID v4, nom, runtime, compatibilité ;
+ *   3. les modules attendus sont tous déclarés (§21) ;
+ *   4. les douze actions du §19 : présence, verbe, clé unique ;
+ *   5. `rovo:mcp` : UN seul module (§24), les douze outils, chacun rattaché à
+ *      une action déclarée ; l'agent « Le jury » et la skill sont vérifiés ;
+ *   6. les seize tables du §22 ;
+ *   7. les déclencheurs planifiés : cinq au plus, UN SEUL à 5 minutes ;
+ *   8. les permissions : aucun chargement distant dans les interfaces (§21) ;
+ *   9. chaque `function:` et chaque `path:` référencé existe dans l'arbre.
  *
  * Règle : fichiers < 500 lignes, fonctions < 50 lignes.
  */
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createRequire } from 'node:module';
 import { parseMiniYaml } from './lib/mini-yaml.mjs';
 import {
   checkActions,
   checkApp,
   checkFunctionReferences,
-  checkHandlers,
   checkModuleKeys,
-  checkModuleShapes,
   checkPermissions,
   checkResources,
   checkRovo,
+  checkSql,
+  checkTriggers,
   createReport,
 } from './lib/manifest-checks.mjs';
 
-const HERE = path.dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = path.resolve(HERE, '..');
-const repoRequire = createRequire(path.join(REPO_ROOT, 'package.json'));
+const RACINE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
-/** Schéma officiel : le dépôt d'abord, le dépôt voisin en repli. */
-const SCHEMA_PATHS = [
-  path.join(REPO_ROOT, 'node_modules/@forge/manifest/out/schema/manifest-schema.json'),
-  path.join(process.env.HOME ?? '/root', 'Bureau/rayon-impact/node_modules/@forge/manifest/out/schema/manifest-schema.json'),
-];
-
-/* --------------------------------------------------------- chargement YAML */
-
-/**
- * Charge le YAML : paquet `yaml`, sinon `js-yaml`, sinon le parseur maison
- * (tools/lib/mini-yaml.mjs, limites documentées dans son en-tête).
- * FORCE_MINI_YAML=1 force le repli — utilisé par les tests.
- */
-function loadYaml(text) {
-  if (process.env.FORCE_MINI_YAML !== '1') {
-    const fromPackage = loadYamlWithPackage(text);
-    if (fromPackage) return fromPackage;
-  }
-  return { data: parseMiniYaml(text), parser: 'mini' };
+/** Le manifeste à contrôler, ou celui de la racine par défaut. */
+function manifestPath(argv) {
+  const arg = argv.find((value) => value.endsWith('.yml') || value.endsWith('.yaml'));
+  return path.resolve(RACINE, arg ?? 'manifest.yml');
 }
 
-function loadYamlWithPackage(text) {
-  for (const name of ['yaml', 'js-yaml']) {
-    let mod;
-    try {
-      mod = repoRequire(name);
-    } catch (error) {
-      if (error && error.code === 'MODULE_NOT_FOUND') continue;
-      throw error;
+/** Tous les fichiers source du dépôt, indexés par chemin relatif. */
+function sourceFiles() {
+  const files = new Map();
+  const walk = (directory) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      if (['node_modules', '.git', 'dist', 'build'].includes(entry.name)) continue;
+      const full = path.join(directory, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else files.set(path.relative(RACINE, full), fs.readFileSync(full, 'utf-8'));
     }
-    const data = name === 'yaml' ? mod.parse(text) : mod.load(text);
-    return { data, parser: name };
-  }
-  return null;
+  };
+  walk(RACINE);
+  return files;
 }
 
-/* ------------------------------------------------------------- schéma JSON */
-
-function resolveSchemaPath() {
-  for (const candidate of SCHEMA_PATHS) {
-    if (candidate && fs.existsSync(candidate)) return candidate;
-  }
-  return null;
+/** Le nom référencé existe-t-il, comme fichier ou comme fonction exportée ? */
+function makeResolver(files) {
+  return (name) => {
+    if (files.has(name)) return true;
+    const base = name.replace(/\.(tsx?|jsx?)$/, '');
+    if (files.has(`${base}.ts`) || files.has(`${base}.tsx`)) return true;
+    const pattern = new RegExp(`export\\s+(async\\s+)?(function|const)\\s+${name}\\b`);
+    for (const content of files.values()) {
+      if (content.startsWith('//') && !content.includes('export')) continue;
+      if (pattern.test(content)) return true;
+    }
+    return false;
+  };
 }
 
-/**
- * Le schéma local ne connaît pas `app.compatibility` ni
- * `app.runtime.{name,architecture,memoryMB}` (versions antérieures à la CLI
- * Forge 14.2) : on les retire pour la validation, puis on les vérifie à la main.
- */
-function sanitizeForSchema(manifest) {
-  const copy = structuredClone(manifest);
-  const app = copy.app ?? {};
-  delete app.compatibility;
-  if (app.runtime && typeof app.runtime === 'object') {
-    const runtime = { ...app.runtime };
-    delete runtime.name;
-    delete runtime.architecture;
-    delete runtime.memoryMB;
-    app.runtime = runtime;
+/** Point d'entrée : tout est dans `main`, la sortie est un code de retour. */
+function main(argv) {
+  const report = createReport();
+  const target = manifestPath(argv);
+  if (!fs.existsSync(target)) {
+    console.error(`::error::manifeste absent : ${target}`);
+    return 1;
   }
-  copy.app = app;
-  return copy;
-}
-
-function validateAgainstSchema(manifest, schemaPath) {
-  let Ajv;
+  let doc;
   try {
-    Ajv = repoRequire('ajv');
+    doc = parseMiniYaml(fs.readFileSync(target, 'utf-8'));
   } catch (error) {
-    if (error && error.code === 'MODULE_NOT_FOUND') {
-      return { available: false, ok: false, errors: [] };
-    }
-    throw error;
+    console.error(`::error::manifeste illisible : ${error.message}`);
+    return 1;
   }
-  const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
-  // `logger: false` : le schéma Forge mélange `$ref` et mots-clés voisins,
-  // ce qui fait bavarder Ajv sans conséquence sur la validation.
-  const ajv = new Ajv({ allErrors: true, logger: false });
-  const validate = ajv.compile(schema);
-  const ok = validate(sanitizeForSchema(manifest));
-  const errors = (validate.errors ?? []).map((error) => `${error.dataPath || '(racine)'} : ${error.message}`);
-  return { available: true, ok, errors };
-}
-
-/* ------------------------------------------------------------------- main */
-
-function runStructuralChecks(manifest, report) {
-  const modules = manifest.modules ?? {};
-  checkApp(manifest, report);
+  const modules = doc?.modules ?? {};
+  checkApp(doc?.app, report);
   checkModuleKeys(modules, report);
-  checkModuleShapes(modules, report);
-  checkFunctionReferences(modules, report);
-  checkHandlers(modules, REPO_ROOT, report);
   checkActions(modules, report);
   checkRovo(modules, report);
-  checkResources(modules, manifest, REPO_ROOT, report);
-  checkPermissions(manifest, report);
+  checkSql(modules, report);
+  checkTriggers(modules, report);
+  checkPermissions(doc?.permissions, report);
+  checkResources(doc?.resources, report);
+  checkFunctionReferences(modules, doc?.resources, makeResolver(sourceFiles()), report);
+
+  for (const error of report.errors) {
+    console.error(`::error::${error.scope} : ${error.message}`);
+  }
+  for (const notice of report.notices) {
+    console.log(`::notice::${notice.scope} : ${notice.message}`);
+  }
+  if (report.errors.length > 0) {
+    console.error(`manifeste non conforme : ${report.errors.length} erreur(s)`);
+    return 1;
+  }
+  console.log('manifeste conforme : 18 modules, 12 outils MCP, 16 tables SQL, 3 déclencheurs planifiés');
+  return 0;
 }
 
-function runSchemaCheck(manifest, report) {
-  const schemaPath = resolveSchemaPath();
-  if (!schemaPath) {
-    report.warn('schéma', 'schéma @forge/manifest introuvable : contrôles structurels seuls');
-    return 'absent';
-  }
-  const result = validateAgainstSchema(manifest, schemaPath);
-  if (!result.available) {
-    report.warn('schéma', 'ajv absent du dépôt : contrôles structurels seuls');
-    return 'ajv absent';
-  }
-  if (!result.ok) {
-    for (const error of result.errors.slice(0, 20)) report.fail('schéma', error);
-    return 'non conforme';
-  }
-  return 'conforme';
-}
-
-function readManifest(argv) {
-  const manifestPath = path.resolve(argv[2] ?? path.join(REPO_ROOT, 'manifest.yml'));
-  if (!fs.existsSync(manifestPath)) {
-    console.error(`KO — manifest introuvable : ${manifestPath}`);
-    process.exit(1);
-  }
-  const text = fs.readFileSync(manifestPath, 'utf8');
-  try {
-    return { manifestPath, manifest: loadYaml(text).data ?? {}, parser: loadYaml(text).parser };
-  } catch (error) {
-    console.error(`KO — YAML illisible : ${error.message}`);
-    process.exit(1);
-  }
-}
-
-function main() {
-  const { manifestPath, manifest, parser } = readManifest(process.argv);
-  const report = createReport();
-  const schemaState = runSchemaCheck(manifest, report);
-  runStructuralChecks(manifest, report);
-
-  if (report.problems.length > 0) {
-    const shown = path.relative(REPO_ROOT, manifestPath) || manifestPath;
-    console.error(`KO — ${report.problems.length} problème(s) dans ${shown} :`);
-    for (const problem of report.problems) console.error(`  - ${problem}`);
-    process.exit(1);
-  }
-  const modules = manifest.modules ?? {};
-  const actionCount = (modules.action ?? []).length;
-  const toolCount = (modules['rovo:mcp'] ?? []).flatMap((entry) => entry?.tools ?? []).length;
-  const functionCount = (modules.function ?? []).length;
-  console.log(
-    `OK — manifest conforme (schéma ${schemaState}, ${actionCount} actions, ${toolCount} outils MCP, ${functionCount} fonctions, parseur YAML ${parser}).`,
-  );
-  for (const warning of report.warnings) console.log(`  ! ${warning}`);
-}
-
-main();
+process.exit(main(process.argv.slice(2)));

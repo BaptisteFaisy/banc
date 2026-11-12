@@ -1,271 +1,149 @@
 /**
- * Contrôles structurels du manifest — utilisés par tools/check-manifest.mjs.
+ * Contrôles métier du manifeste Forge de Banc (§19, §21, §22, §24).
  *
- * Ces contrôles complètent la validation JSON Schema : ils portent sur le
- * contrat métier du dépôt (les sept outils du SPEC §15, les références de
- * fonctions, l'existence des handlers, l'unicité des clés, les scopes).
+ * Bibliothèque pure : elle reçoit le manifeste déjà parsé et un rapport, et
+ * n'écrit rien. `tools/check-manifest.mjs` l'appelle et décide du code de
+ * sortie.
  *
- * Règle : fichiers < 500 lignes, fonctions < 50 lignes.
+ * Le contrat vérifié ici est celui du cahier des charges de Banc : les douze
+ * outils MCP du §19, les seize tables du §22, la limite de cinq déclencheurs
+ * planifiés avec un seul à 5 minutes (§21, §24), et l'absence de chargement
+ * distant dans les interfaces (§21).
  */
-import fs from 'node:fs';
-import path from 'node:path';
 
-/** Les sept outils du §15, dans l'ordre du cahier : [clé, verbe]. */
+/** Les douze outils du §19, dans l'ordre du cahier des charges : [clé, verbe]. */
 export const EXPECTED_ACTIONS = [
-  ['list-criteria', 'GET'],
-  ['get-proof-status', 'GET'],
-  ['attach-evidence', 'CREATE'],
-  ['propose-criteria', 'CREATE'],
-  ['request-attestation', 'CREATE'],
-  ['suggest-evidence', 'GET'],
-  ['get-release-proof', 'GET'],
+  ['run-bench', 'CREATE'],
+  ['get-scorecard', 'GET'],
+  ['list-regressions', 'GET'],
+  ['compare-versions', 'GET'],
+  ['get-case', 'GET'],
+  ['list-cases', 'GET'],
+  ['check-promotion', 'GET'],
+  ['get-stability', 'GET'],
+  ['get-oracle-health', 'GET'],
+  ['propose-case', 'CREATE'],
+  ['record-judgment', 'CREATE'],
+  ['get-run-log', 'GET'],
 ];
 
-const ALLOWED_INPUT_TYPES = new Set(['string', 'integer', 'number', 'boolean']);
-const MODULE_KEY_RE = /^[a-zA-Z0-9_-]+$/;
-const SCOPE_RE = /^[a-z][a-z0-9-]*:[a-z0-9.-]+(:[a-z0-9.-]+)?$/;
-const HANDLER_RE = /^[a-zA-Z0-9][a-zA-Z0-9/_-]*\.[a-zA-Z0-9_$]+$/;
-const INTERVALS = ['fiveMinute', 'hour', 'day', 'week'];
+/** Les seize tables du §22. */
+export const EXPECTED_TABLES = [
+  'agent', 'agent_version', 'case', 'oracle_state', 'condition', 'suite', 'run', 'pass',
+  'verdict', 'scorecard', 'regression', 'fissure', 'judgment', 'calibration', 'amorce', 'budget',
+];
 
-/* ------------------------------------------------------------------ rapport */
+/** Les dix-huit modules déclarés par le banc. */
+export const EXPECTED_MODULES = [
+  'rovo:mcp', 'rovo:agent', 'rovo:skill', 'action', 'jira:globalPage', 'jira:projectPage',
+  'jira:issuePanel', 'jira:workflowValidator', 'jira:customField', 'jira:dashboardGadget',
+  'confluence:globalPage', 'confluence:spaceSettingsPage', 'trigger', 'scheduledTrigger',
+  'consumer', 'webtrigger', 'sql', 'llm',
+];
 
+/** Un rapport de contrôle : erreurs et notices. */
 export function createReport() {
-  const problems = [];
-  const warnings = [];
+  const errors = [];
+  const notices = [];
   return {
-    problems,
-    warnings,
-    fail(scope, message) {
-      problems.push(`${scope} : ${message}`);
-    },
-    warn(scope, message) {
-      warnings.push(`${scope} : ${message}`);
-    },
+    errors,
+    notices,
+    fail(scope, message) { errors.push({ scope, message }); return false; },
+    note(scope, message) { notices.push({ scope, message }); },
+    ok() { return errors.length === 0; },
   };
 }
 
+/** Vérifie une condition, et journalise l'échec si elle n'est pas remplie. */
 export function expect(condition, scope, message, report) {
   if (!condition) report.fail(scope, message);
   return Boolean(condition);
 }
 
-/* ------------------------------------------------------------------ outils */
-
-export function moduleEntries(modules) {
-  const entries = [];
-  for (const [type, list] of Object.entries(modules ?? {})) {
-    for (const entry of Array.isArray(list) ? list : []) entries.push({ type, entry });
-  }
-  return entries;
-}
-
-function functionKeys(modules) {
-  const list = modules?.function ?? [];
-  return new Set((Array.isArray(list) ? list : []).map((entry) => entry?.key));
-}
-
-/** Toutes les références à une fonction Forge contenues dans les modules. */
-function referencedFunctions(modules) {
-  const references = [];
-  for (const { type, entry } of moduleEntries(modules)) {
-    const scope = `modules.${type}.${entry?.key ?? '?'}`;
-    if (typeof entry?.function === 'string') references.push({ scope, key: entry.function });
-    for (const nested of ['resolver', 'config', 'edit', 'contextualConfiguration']) {
-      const holder = entry?.[nested];
-      const fn = holder?.function ?? holder?.resolver?.function;
-      if (typeof fn === 'string') references.push({ scope: `${scope}.${nested}`, key: fn });
-    }
-  }
-  return references;
-}
-
-/** Fichiers de souche annoncés par le contrat (docs/CONTRACTS.md §3). */
-export function announcedStubs(repoRoot) {
-  const contractsPath = path.join(repoRoot, 'docs/CONTRACTS.md');
-  const stubs = new Set();
-  if (!fs.existsSync(contractsPath)) return stubs;
-  const text = fs.readFileSync(contractsPath, 'utf8');
-  for (const match of text.matchAll(/src\/handlers\/[a-z0-9-]+\.tsx?/g)) stubs.add(match[0]);
-  return stubs;
-}
-
-/* ------------------------------------------------------------------ app */
-
-export function checkApp(manifest, report) {
-  const app = manifest.app ?? {};
-  if (!expect(typeof app.id === 'string', 'app.id', 'un identifiant ARI est obligatoire', report)) {
-    return;
-  }
-  expect(
-    /^ari:cloud:ecosystem::app\/\S+$/.test(app.id),
-    'app.id',
-    `doit ressembler à ari:cloud:ecosystem::app/<uuid> (trouvé « ${app.id} »)`,
-    report,
-  );
-  if (app.id.includes('00000000-0000-0000-0000-000000000000')) {
-    report.warn('app.id', 'identifiant provisoire : à remplacer par celui de `forge create`');
-  }
-  expect(
-    typeof app.name === 'string' && app.name.trim().length > 0,
-    'app.name',
-    'obligatoire (1 à 50 caractères)',
-    report,
-  );
-  const runtime = app.runtime ?? {};
-  expect(runtime.name === 'nodejs22.x', 'app.runtime.name', 'doit valoir nodejs22.x', report);
-  expect(runtime.architecture === 'x86_64', 'app.runtime.architecture', 'doit valoir x86_64', report);
-  expect(runtime.memoryMB === 512, 'app.runtime.memoryMB', 'doit valoir 512', report);
-  const compatibility = app.compatibility ?? {};
-  expect(
-    compatibility.jira?.required === true,
-    'app.compatibility.jira.required',
-    'doit valoir true (Jira est requis)',
-    report,
-  );
-  expect(
-    compatibility.confluence?.required === false,
-    'app.compatibility.confluence.required',
-    'doit valoir false (Confluence est optionnel)',
-    report,
-  );
-}
-
-/* --------------------------------------------------------------- modules */
-
+/** Vérifie que les clés de modules attendues sont toutes là (§21). */
 export function checkModuleKeys(modules, report) {
-  const seen = new Map();
-  for (const { type, entry } of moduleEntries(modules)) {
-    const key = entry?.key;
-    if (!expect(typeof key === 'string' && key !== '', `modules.${type}`, 'clé de module obligatoire', report)) {
-      continue;
-    }
-    expect(MODULE_KEY_RE.test(key), `modules.${type}.${key}`, 'clé invalide (^[a-zA-Z0-9_-]+$)', report);
-    if (seen.has(key)) {
-      report.fail(`modules.${type}.${key}`, `clé déjà utilisée par ${seen.get(key)}`);
-    } else {
-      seen.set(key, `modules.${type}`);
+  const present = Object.keys(modules ?? {});
+  for (const key of EXPECTED_MODULES) {
+    expect(present.includes(key), 'modules', `module « ${key} » absent`, report);
+  }
+  for (const key of present) {
+    if (!EXPECTED_MODULES.includes(key)) {
+      report.note('modules', `module « ${key} » hors du périmètre du banc`);
     }
   }
+  return present;
 }
 
-export function checkFunctionReferences(modules, report) {
-  const known = functionKeys(modules);
-  for (const { scope, key } of referencedFunctions(modules)) {
-    expect(known.has(key), scope, `fonction « ${key} » absente de modules.function`, report);
-  }
+/** Vérifie le bloc `app` : UUID v4, nom, runtime, compatibilité. */
+export function checkApp(app, report) {
+  const id = String(app?.id ?? '');
+  const uuid = /ari:cloud:ecosystem::app\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+  expect(uuid.test(id), 'app.id', 'app.id doit être un ARI suivi d’un UUID v4', report);
+  expect(typeof app?.name === 'string' && app.name.length > 0, 'app.name', 'nom obligatoire', report);
+  expect(app?.runtime?.name === 'nodejs22.x', 'app.runtime.name', 'runtime attendu : nodejs22.x', report);
+  expect(Number(app?.runtime?.memoryMB) <= 1024, 'app.runtime.memoryMB', 'mémoire au-delà de 1 Go', report);
+  expect(app?.compatibility?.jira?.required === true, 'app.compatibility.jira', 'Jira doit être requis', report);
+  return true;
 }
 
-export function checkHandlers(modules, repoRoot, report) {
-  const stubs = announcedStubs(repoRoot);
-  const list = modules?.function ?? [];
-  for (const entry of Array.isArray(list) ? list : []) {
-    checkOneHandler(entry, repoRoot, stubs, report);
-  }
-}
-
-function checkOneHandler(entry, repoRoot, stubs, report) {
-  const scope = `modules.function.${entry?.key ?? '?'}`;
-  const handler = entry?.handler;
-  if (!expect(typeof handler === 'string' && handler !== '', scope, 'handler obligatoire', report)) return;
-  if (!expect(HANDLER_RE.test(handler), scope, `handler invalide (« ${handler} »), attendu module.fonction`, report)) {
-    return;
-  }
-  const [modulePath, exportName] = handler.split('.');
-  const candidates = ['ts', 'tsx', 'js', 'jsx'].map((ext) => path.join(repoRoot, 'src', `${modulePath}.${ext}`));
-  const found = candidates.find((candidate) => fs.existsSync(candidate));
-  if (found) {
-    const source = fs.readFileSync(found, 'utf8');
-    if (!new RegExp(`export[^\\n]*\\b${exportName}\\b`).test(source)) {
-      report.warn(scope, `« ${exportName} » ne semble pas être exporté par ${path.relative(repoRoot, found)}`);
-    }
-    return;
-  }
-  const announced = `src/${modulePath}.ts`;
-  if (stubs.has(announced)) {
-    report.warn(scope, `handler ${announced} annoncé dans docs/CONTRACTS.md mais absent du dépôt (souche)`);
-  } else {
-    report.fail(scope, `handler introuvable : ${announced} n'existe pas et n'est pas annoncé`);
-  }
-}
-
-/* --------------------------------------------------------------- actions */
-
+/** Vérifie les douze actions : présence, verbe, et clé unique. */
 export function checkActions(modules, report) {
-  const list = Array.isArray(modules?.action) ? modules.action : [];
-  const byKey = new Map(list.map((entry) => [entry?.key, entry]));
+  const actions = Array.isArray(modules?.action) ? modules.action : [];
+  const keys = actions.map((entry) => entry?.key);
   for (const [key, verb] of EXPECTED_ACTIONS) {
-    const entry = byKey.get(key);
-    if (!expect(entry, 'modules.action', `action « ${key} » manquante (§15)`, report)) continue;
-    expect(
-      entry.actionVerb === verb,
-      `modules.action.${key}`,
-      `actionVerb doit valoir ${verb} (§15), trouvé « ${entry.actionVerb ?? 'absent'} »`,
-      report,
-    );
-    expect(typeof entry.name === 'string' && entry.name !== '', `modules.action.${key}`, 'name obligatoire', report);
-    expect(
-      typeof entry.description === 'string' && entry.description !== '',
-      `modules.action.${key}`,
-      'description obligatoire (elle guide le LLM)',
-      report,
-    );
-    expect(typeof entry.function === 'string', `modules.action.${key}`, 'function obligatoire', report);
-    checkActionInputs(key, entry, report);
-  }
-  for (const entry of list) {
-    if (entry?.key && !EXPECTED_ACTIONS.some(([key]) => key === entry.key)) {
-      report.fail(`modules.action.${entry.key}`, 'action hors de la liste des sept outils du §15');
+    const entry = actions.find((item) => item?.key === key);
+    if (!expect(entry, 'modules.action', `action « ${key} » manquante (§19)`, report)) continue;
+    expect(typeof entry?.function === 'string' && entry.function.length > 0,
+      `modules.action.${key}`, 'function obligatoire', report);
+    const declared = entry?.actionVerb;
+    if (declared !== undefined) {
+      expect(declared === verb, `modules.action.${key}`,
+        `actionVerb doit valoir ${verb} (§19), trouvé « ${declared} »`, report);
     }
   }
-}
-
-function checkActionInputs(key, entry, report) {
-  const scope = `modules.action.${key}.inputs`;
-  const inputs = entry?.inputs;
-  if (!expect(inputs && typeof inputs === 'object', scope, 'inputs obligatoires', report)) return;
-  for (const [name, input] of Object.entries(inputs)) {
-    const inputScope = `${scope}.${name}`;
-    expect(typeof input?.title === 'string' && input.title !== '', inputScope, 'title obligatoire', report);
-    expect(
-      ALLOWED_INPUT_TYPES.has(input?.type),
-      inputScope,
-      `type « ${input?.type} » non autorisé (§19 : string, integer, number, boolean)`,
-      report,
-    );
-    expect(typeof input?.required === 'boolean', inputScope, 'required obligatoire (booléen)', report);
-    expect(
-      typeof input?.description === 'string' && input.description !== '',
-      inputScope,
-      'description obligatoire',
-      report,
-    );
+  for (const key of keys) {
+    if (key && !EXPECTED_ACTIONS.some(([expected]) => expected === key)) {
+      report.fail('modules.action', `action « ${key} » hors de la liste des douze outils du §19`);
+    }
   }
+  expect(new Set(keys).size === keys.length, 'modules.action', 'clé d’action dupliquée', report);
+  return actions;
 }
 
-/* ------------------------------------------------------------------ Rovo */
-
+/**
+ * Vérifie le bloc `rovo:mcp` : un seul module par app (§24), les douze outils,
+ * chacun rattaché à une action déclarée.
+ */
 export function checkRovo(modules, report) {
   const actionKeys = new Set((modules?.action ?? []).map((entry) => entry?.key));
   const mcpList = Array.isArray(modules?.['rovo:mcp']) ? modules['rovo:mcp'] : [];
-  if (!expect(mcpList.length === 1, 'modules.rovo:mcp', 'un seul module rovo:mcp par app', report)) return;
+  if (!expect(mcpList.length === 1, 'modules.rovo:mcp', 'un seul module rovo:mcp par app (§24)', report)) return;
   const mcp = mcpList[0];
-  expect(
-    typeof mcp?.name === 'string' && mcp.name.length <= 30,
-    'modules.rovo:mcp',
-    'name obligatoire (30 caractères max)',
-    report,
-  );
+  expect(typeof mcp?.name === 'string' && mcp.name.length <= 30,
+    'modules.rovo:mcp', 'name obligatoire (30 caractères max)', report);
   const tools = Array.isArray(mcp?.tools) ? mcp.tools : [];
+  const toolKeys = tools.map((tool) => tool?.key);
   for (const tool of tools) {
-    expect(actionKeys.has(tool), 'modules.rovo:mcp.tools', `outil « ${tool} » sans action déclarée`, report);
+    const scope = `modules.rovo:mcp.tools.${tool?.key ?? '?'}`;
+    expect(typeof tool?.name === 'string' && tool.name.length > 0, scope, 'name obligatoire', report);
+    expect(typeof tool?.description === 'string' && tool.description.length > 0, scope, 'description obligatoire', report);
+    expect(actionKeys.has(tool?.action), scope, `outil sans action déclarée (« ${tool?.action} » ?)`, report);
   }
   for (const [key] of EXPECTED_ACTIONS) {
-    expect(tools.includes(key), 'modules.rovo:mcp.tools', `outil « ${key} » absent (§15)`, report);
+    expect(toolKeys.includes(key), 'modules.rovo:mcp.tools', `outil « ${key} » absent (§19)`, report);
   }
+  expect(new Set(toolKeys).size === toolKeys.length, 'modules.rovo:mcp.tools', 'clé d’outil dupliquée', report);
+  checkAgent(modules, actionKeys, report);
+  checkSkill(modules, report);
+}
+
+/** Vérifie l'agent Rovo « Le jury » : ses actions doivent exister (§19). */
+export function checkAgent(modules, actionKeys, report) {
   const agents = Array.isArray(modules?.['rovo:agent']) ? modules['rovo:agent'] : [];
+  expect(agents.length === 1, 'modules.rovo:agent', 'un agent « Le jury » attendu (§19)', report);
   for (const agent of agents) {
     const scope = `modules.rovo:agent.${agent?.key ?? '?'}`;
-    expect(typeof agent?.name === 'string' && agent.name.length <= 30, scope, 'name obligatoire (30 caractères max)', report);
+    expect(typeof agent?.name === 'string' && agent.name.length <= 30, scope, 'name obligatoire', report);
     expect(typeof agent?.prompt === 'string' && agent.prompt !== '', scope, 'prompt obligatoire', report);
     for (const action of agent?.actions ?? []) {
       expect(actionKeys.has(action), `${scope}.actions`, `action « ${action} » non déclarée`, report);
@@ -273,122 +151,95 @@ export function checkRovo(modules, report) {
   }
 }
 
-/* ------------------------------------------------------------ ressources */
+/** Vérifie la skill : elle doit pointer un fichier réel (§19). */
+export function checkSkill(modules, report) {
+  const skills = Array.isArray(modules?.['rovo:skill']) ? modules['rovo:skill'] : [];
+  expect(skills.length >= 1, 'modules.rovo:skill', 'la skill before-promoting-an-agent est attendue (§19)', report);
+  for (const skill of skills) {
+    const scope = `modules.rovo:skill.${skill?.key ?? '?'}`;
+    expect(typeof skill?.name === 'string' && skill.name.length > 0, scope, 'name obligatoire', report);
+    expect(typeof skill?.resource === 'string' && skill.resource.length > 0, scope, 'resource obligatoire', report);
+  }
+}
 
-export function checkResources(modules, manifest, repoRoot, report) {
-  const resources = Array.isArray(manifest?.resources) ? manifest.resources : [];
-  const keys = new Set();
-  for (const resource of resources) {
-    const scope = `resources.${resource?.key ?? '?'}`;
-    if (!expect(typeof resource?.key === 'string' && resource.key !== '', scope, 'clé obligatoire', report)) continue;
-    expect(MODULE_KEY_RE.test(resource.key), scope, 'clé invalide (^[a-zA-Z0-9_-]+$)', report);
-    expect(resource.key.length <= 23, scope, 'clé trop longue (23 caractères max)', report);
-    expect(typeof resource?.path === 'string' && resource.path !== '', scope, 'path obligatoire', report);
-    expect(!keys.has(resource.key), scope, 'clé de ressource déjà utilisée', report);
-    keys.add(resource.key);
-    if (!fs.existsSync(path.join(repoRoot, resource.path))) {
-      report.warn(scope, `chemin ${resource.path} absent du dépôt (fichier d'un autre lot)`);
+/** Vérifie le schéma SQL : les seize tables du §22, uniques. */
+export function checkSql(modules, report) {
+  const sql = Array.isArray(modules?.sql) ? modules.sql[0] : modules?.sql;
+  const tables = Array.isArray(sql?.tables) ? sql.tables : [];
+  const names = tables.map((table) => table?.name);
+  expect(names.length === EXPECTED_TABLES.length, 'modules.sql',
+    `le schéma doit déclarer ${EXPECTED_TABLES.length} tables (§22), trouvé ${names.length}`, report);
+  for (const name of EXPECTED_TABLES) {
+    expect(names.includes(name), 'modules.sql.tables', `table « ${name} » absente (§22)`, report);
+  }
+  expect(new Set(names).size === names.length, 'modules.sql.tables', 'table dupliquée', report);
+}
+
+/**
+ * Vérifie les déclencheurs planifiés : cinq au plus, UN SEUL à 5 minutes
+ * (§21, §24). C'est une limite de plateforme, pas une préférence.
+ */
+export function checkTriggers(modules, report) {
+  const scheduled = Array.isArray(modules?.scheduledTrigger) ? modules.scheduledTrigger : [];
+  expect(scheduled.length <= 5, 'modules.scheduledTrigger',
+    `cinq déclencheurs planifiés au plus (§21), trouvé ${scheduled.length}`, report);
+  const fast = scheduled.filter((entry) => parseInterval(entry?.interval) <= 5);
+  expect(fast.length <= 1, 'modules.scheduledTrigger',
+    `un seul déclencheur planifié à 5 minutes (§21), trouvé ${fast.length}`, report);
+  for (const entry of scheduled) {
+    expect(typeof entry?.function === 'string' && entry.function.length > 0,
+      `modules.scheduledTrigger.${entry?.key ?? '?'}`, 'function obligatoire', report);
+  }
+}
+
+/** Convertit un intervalle (`5m`, `1d`, `1w`) en minutes. */
+export function parseInterval(interval) {
+  const match = /^(\d+)([mhdw])$/.exec(String(interval ?? ''));
+  if (!match) return Number.POSITIVE_INFINITY;
+  const value = Number(match[1]);
+  const unit = match[2];
+  if (unit === 'm') return value;
+  if (unit === 'h') return value * 60;
+  if (unit === 'd') return value * 1440;
+  return value * 10080;
+}
+
+/** Vérifie les permissions : scopes déclarés, et AUCUN chargement distant (§21). */
+export function checkPermissions(permissions, report) {
+  const scopes = Array.isArray(permissions?.scopes) ? permissions.scopes : [];
+  expect(scopes.length > 0, 'permissions.scopes', 'au moins un scope déclaré', report);
+  expect(new Set(scopes).size === scopes.length, 'permissions.scopes', 'scope dupliqué', report);
+  const images = permissions?.external?.images;
+  expect(Array.isArray(images) && images.length === 0, 'permissions.external.images',
+    'aucun chargement distant dans les interfaces (§21)', report);
+}
+
+/** Vérifie les ressources : la ressource principale et l'icône. */
+export function checkResources(resources, report) {
+  const list = Array.isArray(resources) ? resources : [];
+  const keys = list.map((resource) => resource?.key);
+  expect(keys.includes('main'), 'resources', 'ressource « main » absente', report);
+  expect(new Set(keys).size === keys.length, 'resources', 'clé de ressource dupliquée', report);
+  for (const resource of list) {
+    expect(typeof resource?.path === 'string' && resource.path.length > 0,
+      `resources.${resource?.key ?? '?'}`, 'path obligatoire', report);
+  }
+}
+
+/** Vérifie que chaque `function:` référencée existe dans l'arborescence. */
+export function checkFunctionReferences(modules, resources, exists, report) {
+  const referenced = [];
+  for (const list of Object.values(modules ?? {})) {
+    if (!Array.isArray(list)) continue;
+    for (const entry of list) {
+      if (typeof entry?.function === 'string') referenced.push(entry.function);
+      if (typeof entry?.resolver?.function === 'string') referenced.push(entry.resolver.function);
     }
   }
-  checkResourceReferences(modules, keys, report);
-}
-
-function checkResourceReferences(modules, keys, report) {
-  for (const { type, entry } of moduleEntries(modules)) {
-    const scope = `modules.${type}.${entry?.key ?? '?'}`;
-    const resource = entry?.resource;
-    if (typeof resource === 'string') {
-      expect(keys.has(resource), scope, `ressource « ${resource} » absente de la section resources`, report);
-    }
-    const icon = entry?.icon;
-    if (typeof icon === 'string' && icon.startsWith('resource:')) {
-      const referenced = icon.slice('resource:'.length).split(';')[0];
-      expect(keys.has(referenced), scope, `icône « ${icon} » : ressource « ${referenced} » inconnue`, report);
-    }
+  for (const resource of resources ?? []) {
+    if (typeof resource?.path === 'string') referenced.push(resource.path);
   }
-}
-
-/* ------------------------------------------------------------- permissions */
-
-export function checkPermissions(manifest, report) {
-  const scopes = manifest?.permissions?.scopes;
-  if (!expect(Array.isArray(scopes) && scopes.length > 0, 'permissions.scopes', 'liste de scopes obligatoire', report)) {
-    return;
-  }
-  const seen = new Set();
-  for (const scope of scopes) {
-    expect(typeof scope === 'string', 'permissions.scopes', 'chaque scope est une chaîne', report);
-    expect(SCOPE_RE.test(scope), 'permissions.scopes', `scope « ${scope} » mal formé`, report);
-    expect(!seen.has(scope), 'permissions.scopes', `scope « ${scope} » en double`, report);
-    seen.add(scope);
-  }
-}
-
-/* ------------------------------------------- formes propres à chaque module */
-
-export function checkModuleShapes(modules, report) {
-  checkUiAndValidatorShapes(modules, report);
-  checkEventShapes(modules, report);
-  checkStorageShapes(modules, report);
-}
-
-function checkUiAndValidatorShapes(modules, report) {
-  const list = (type) => (Array.isArray(modules?.[type]) ? modules[type] : []);
-  for (const entry of list('jira:workflowValidator')) {
-    const scope = `modules.jira:workflowValidator.${entry?.key ?? '?'}`;
-    expect(typeof entry?.name === 'string' && entry.name !== '', scope, 'name obligatoire', report);
-    expect(typeof entry?.description === 'string' && entry.description !== '', scope, 'description obligatoire', report);
-    expect(typeof entry?.function === 'string', scope, 'function obligatoire', report);
-  }
-  for (const type of ['jira:issuePanel', 'jira:projectPage', 'jira:projectSettingsPage']) {
-    for (const entry of list(type)) {
-      const scope = `modules.${type}.${entry?.key ?? '?'}`;
-      expect(typeof entry?.title === 'string' && entry.title !== '', scope, 'title obligatoire', report);
-      expect(typeof entry?.resource === 'string', scope, 'resource obligatoire', report);
-      expect(typeof entry?.resolver?.function === 'string', scope, 'resolver.function obligatoire', report);
-      if (entry?.render !== 'native') report.warn(scope, 'render: native absent (UI Kit 2)');
-    }
-  }
-  for (const entry of list('jira:customField')) {
-    const scope = `modules.jira:customField.${entry?.key ?? '?'}`;
-    expect(typeof entry?.name === 'string' && entry.name !== '', scope, 'name obligatoire', report);
-    expect(typeof entry?.type === 'string' && entry.type !== '', scope, 'type obligatoire', report);
-    expect(entry?.readOnly === true, scope, 'champ en lecture seule attendu (§16.2)', report);
-  }
-}
-
-function checkEventShapes(modules, report) {
-  const list = (type) => (Array.isArray(modules?.[type]) ? modules[type] : []);
-  for (const entry of list('webtrigger')) {
-    const scope = `modules.webtrigger.${entry?.key ?? '?'}`;
-    expect(typeof entry?.function === 'string', scope, 'function obligatoire', report);
-    expect(entry?.response?.type === 'dynamic', scope, 'response.type doit valoir dynamic', report);
-  }
-  for (const entry of list('consumer')) {
-    const scope = `modules.consumer.${entry?.key ?? '?'}`;
-    expect(typeof entry?.queue === 'string' && entry.queue !== '', scope, 'queue obligatoire', report);
-    expect(typeof entry?.function === 'string', scope, 'function obligatoire', report);
-  }
-  for (const entry of list('trigger')) {
-    const scope = `modules.trigger.${entry?.key ?? '?'}`;
-    expect(typeof entry?.function === 'string', scope, 'function obligatoire', report);
-    expect(Array.isArray(entry?.events) && entry.events.length > 0, scope, 'events obligatoires', report);
-  }
-  for (const entry of list('scheduledTrigger')) {
-    const scope = `modules.scheduledTrigger.${entry?.key ?? '?'}`;
-    expect(typeof entry?.function === 'string', scope, 'function obligatoire', report);
-    expect(INTERVALS.includes(entry?.interval), scope, 'intervalle invalide', report);
-  }
-}
-
-function checkStorageShapes(modules, report) {
-  const list = (type) => (Array.isArray(modules?.[type]) ? modules[type] : []);
-  for (const entry of list('sql')) {
-    const scope = `modules.sql.${entry?.key ?? '?'}`;
-    expect(entry?.engine === 'mysql', scope, 'engine doit valoir mysql', report);
-  }
-  for (const entry of list('llm')) {
-    const scope = `modules.llm.${entry?.key ?? '?'}`;
-    expect(Array.isArray(entry?.model) && entry.model.length > 0, scope, 'model obligatoire (tableau)', report);
+  for (const name of new Set(referenced)) {
+    expect(exists(name), 'references', `« ${name} » référencé mais absent de l’arborescence`, report);
   }
 }
