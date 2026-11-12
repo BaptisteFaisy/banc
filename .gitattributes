@@ -1,0 +1,14 @@
+* text=auto eol=lf
+
+# Le verrou npm est généré, jamais écrit à la main, jamais fusionné à la main :
+# un verrou en conflit se résout en le régénérant (`npm install`), ce que fait
+# exactement le résolveur Hermes pour les fichiers dérivés (docs/HERMES.md).
+package-lock.json merge=binary -diff linguist-generated=true
+
+# La sortie du site public est un artefact de build : même traitement.
+site/dist/** merge=binary -diff linguist-generated=true
+
+*.png binary
+*.ico binary
+*.woff2 binary
+*.svg text eol=lf

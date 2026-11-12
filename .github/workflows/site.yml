@@ -1,0 +1,87 @@
+name: site
+
+# CI du site public de démonstration (Vite + React) : le site est du code comme
+# le reste, il a ses propres gardes. Publié sur GitHub Pages sur `main`
+# uniquement — jamais sur une PR (règle CI 5 min : un déploiement n'est pas un
+# verdict de PR).
+#
+# Budget : 5 minutes (règle user 2026-10-24). Build Vite d'un site statique :
+# mesuré bien en dessous sur un runner self-hosted chaud.
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/site.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    name: build
+    runs-on: [self-hosted, linux, x64, banc-worker]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          clean: false
+
+      - name: Nettoyage du workspace (node_modules conservé)
+        shell: bash
+        run: git clean -ffdx -e /node_modules -e /.npm-state
+
+      - name: Dépendances (installation seulement si le lock change)
+        shell: bash
+        run: |
+          export NPM_CONFIG_CACHE="$HOME/.npm-ci-cache"
+          LOCK_HASH="$(sha256sum package-lock.json | cut -d' ' -f1)"
+          MARKER="node_modules/.banc-lock-hash"
+          if [ -d node_modules ] && [ "$LOCK_HASH" = "$(cat "$MARKER" 2>/dev/null)" ]; then
+            echo "node_modules deja a jour - installation sautee"
+          else
+            npm ci --prefer-offline --no-audit --no-fund
+            printf '%s' "$LOCK_HASH" > "$MARKER"
+          fi
+
+      - name: Types du site (tsc -p site)
+        run: npx tsc -p site/tsconfig.json --noEmit
+
+      - name: Build du site (vite)
+        run: npm run site:build
+
+      - name: Garde de taille des fonctions du site (< 50 lignes)
+        run: node tools/check-function-limits.mjs --racine site/src
+
+      - name: Configurer Pages
+        uses: actions/configure-pages@v5
+
+      - name: Téléverser l'artefact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/dist
+
+  deploy:
+    name: deploy
+    needs: build
+    runs-on: [self-hosted, linux, x64, banc-worker]
+    timeout-minutes: 5
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Déployer sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
