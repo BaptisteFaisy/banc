@@ -16,6 +16,7 @@ import Problem from './sections/problem';
 import Screens from './sections/screens';
 import Stability from './sections/stability';
 import Vision from './sections/vision';
+import RealRun from './sections/real-run';
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
         <Gauges />
         <Stability />
         <Gate />
+        <RealRun />
         <Vision />
         <Screens />
         <Demo />

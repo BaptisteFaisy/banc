@@ -19,7 +19,8 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true,
     "types": [
-      "node"
+      "node",
+      "vite/client"
     ]
   },
   "include": [

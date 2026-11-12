@@ -321,3 +321,16 @@ a:hover {
 .golden-case__answer { margin: 8px 0 4px; }
 .golden-case__source { font-size: 0.85rem; color: #42526e; display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
 .golden-case__quote { font-family: ui-monospace, monospace; background: #f4f5f7; padding: 1px 6px; border-radius: 4px; }
+
+/* La mesure réelle : totaux, scorecard mesurée, fissures, réponses. */
+.real__totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0 26px; }
+.real__totals div { border: 1px solid #dfe1e6; border-radius: 8px; padding: 10px 12px; }
+.real__totals dt { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #5e6c84; }
+.real__totals dd { margin: 4px 0 0; font-size: 1.1rem; font-weight: 600; }
+.real__cracks, .real__motives { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.real__cracks li { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.real__motives li { display: flex; gap: 10px; align-items: baseline; }
+.real__answer { border: 1px solid #dfe1e6; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+.real__question { font-weight: 600; }
+.real__oracle { margin: 6px 0; font-size: 0.95rem; }
+.real__meta { font-size: 0.8rem; color: #5e6c84; }
