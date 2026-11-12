@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Banc, the agent test bench">
+  <title>Banc</title>
+  <rect width="64" height="64" rx="12" fill="#0b0e13" />
+  <rect x="6" y="6" width="52" height="52" rx="9" fill="none" stroke="#2a3442" stroke-width="2" />
+  <path d="M14 42a18 18 0 0 1 36 0" fill="none" stroke="#8fd0ff" stroke-width="4" stroke-linecap="round" />
+  <path d="M32 42 41 26" stroke="#7ee2a8" stroke-width="4" stroke-linecap="round" />
+  <circle cx="32" cy="42" r="4" fill="#e9eef5" />
+  <rect x="16" y="46" width="32" height="5" rx="2" fill="#2a3442" />
+</svg>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="Banc — the agent test bench. Before you trust an agent, bench it.">
+  <title>Banc — the agent test bench</title>
+  <rect width="1200" height="630" fill="#0b0e13" />
+  <rect x="48" y="48" width="1104" height="534" rx="18" fill="none" stroke="#2a3442" stroke-width="2" />
+
+  <text x="96" y="150" fill="#e9eef5" font-family="ui-sans-serif, system-ui, sans-serif" font-size="58" font-weight="700">
+    Before you trust an agent, bench it.
+  </text>
+  <text x="96" y="202" fill="#a7b4c4" font-family="ui-monospace, monospace" font-size="26">
+    Truth derived from your organisation. Replayed on every version.
+  </text>
+
+  <!-- Three dials: exactness, grounding, stability -->
+  <g>
+    <path d="M120 400a90 90 0 0 1 180 0" fill="none" stroke="#8fd0ff" stroke-width="10" stroke-linecap="round" />
+    <path d="M210 400 246 330" stroke="#7ee2a8" stroke-width="10" stroke-linecap="round" />
+    <circle cx="210" cy="400" r="12" fill="#e9eef5" />
+    <text x="210" y="450" fill="#a7b4c4" font-family="ui-monospace, monospace" font-size="24" text-anchor="middle">exactness</text>
+  </g>
+  <g>
+    <path d="M420 400a90 90 0 0 1 180 0" fill="none" stroke="#8fd0ff" stroke-width="10" stroke-linecap="round" />
+    <path d="M510 400 546 330" stroke="#7ee2a8" stroke-width="10" stroke-linecap="round" />
+    <circle cx="510" cy="400" r="12" fill="#e9eef5" />
+    <text x="510" y="450" fill="#a7b4c4" font-family="ui-monospace, monospace" font-size="24" text-anchor="middle">grounding</text>
+  </g>
+  <g>
+    <path d="M720 400a90 90 0 0 1 180 0" fill="none" stroke="#8fd0ff" stroke-width="10" stroke-linecap="round" />
+    <path d="M810 400 770 340" stroke="#ff9d9d" stroke-width="10" stroke-linecap="round" />
+    <circle cx="810" cy="400" r="12" fill="#e9eef5" />
+    <text x="810" y="450" fill="#a7b4c4" font-family="ui-monospace, monospace" font-size="24" text-anchor="middle">stability</text>
+  </g>
+
+  <!-- The gate: a thread between two posts, red -->
+  <line x1="960" y1="330" x2="960" y2="470" stroke="#2a3442" stroke-width="8" stroke-linecap="round" />
+  <line x1="1090" y1="330" x2="1090" y2="470" stroke="#2a3442" stroke-width="8" stroke-linecap="round" />
+  <line x1="960" y1="356" x2="1090" y2="432" stroke="#ff9d9d" stroke-width="8" stroke-linecap="round" />
+  <text x="1025" y="510" fill="#a7b4c4" font-family="ui-monospace, monospace" font-size="24" text-anchor="middle">promotion gate</text>
+
+  <text x="96" y="548" fill="#8fd0ff" font-family="ui-monospace, monospace" font-size="24">
+    banc · github.com/BaptisteFaisy/banc · MIT
+  </text>
+</svg>

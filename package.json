@@ -33,12 +33,19 @@
     "vitest": "^2.1.0"
   },
   "dependencies": {
+    "@atlaskit/button": "latest",
+    "@atlaskit/css-reset": "latest",
+    "@atlaskit/empty-state": "latest",
+    "@atlaskit/modal-dialog": "latest",
+    "@atlaskit/polyfills": "latest",
+    "@atlaskit/table": "latest",
+    "@atlaskit/tabs": "latest",
+    "@atlaskit/tag": "latest",
+    "@atlaskit/tooltip": "latest",
     "@forge/api": "^8.5.0",
     "@forge/events": "^2.0.0",
     "@forge/llm": "^1.0.0",
-    "@forge/react": "^10.0.0",
     "@forge/resolver": "^1.6.0",
-    "@forge/sql": "^4.0.10",
-    "@forge/ui": "^1.0.0"
+    "@forge/sql": "^4.0.10"
   }
 }
