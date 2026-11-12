@@ -32,6 +32,8 @@ jobs:
     name: build
     runs-on: [self-hosted, linux, x64, banc-worker]
     timeout-minutes: 5
+    outputs:
+      present: ${{ steps.present.outputs.present }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,11 +41,27 @@ jobs:
           persist-credentials: false
           clean: false
 
+      # Le site public arrive après le socle : tant que `site/` n'existe pas, le
+      # workflow s'arrête proprement au lieu de casser `main` sur un dossier
+      # absent. Un job qui n'a rien à faire le dit, il ne rougit pas.
+      - name: Vérifier la présence du site
+        id: present
+        shell: bash
+        run: |
+          if [ -f site/package.json ] || [ -f site/vite.config.ts ]; then
+            echo "present=1" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=0" >> "$GITHUB_OUTPUT"
+            echo "::notice::site/ absent - build du site ignore"
+          fi
+
       - name: Nettoyage du workspace (node_modules conservé)
+        if: steps.present.outputs.present == '1'
         shell: bash
         run: git clean -ffdx -e /node_modules -e /.npm-state
 
       - name: Dépendances (installation seulement si le lock change)
+        if: steps.present.outputs.present == '1'
         shell: bash
         run: |
           export NPM_CONFIG_CACHE="$HOME/.npm-ci-cache"
@@ -57,18 +75,23 @@ jobs:
           fi
 
       - name: Types du site (tsc -p site)
+        if: steps.present.outputs.present == '1'
         run: npx tsc -p site/tsconfig.json --noEmit
 
       - name: Build du site (vite)
+        if: steps.present.outputs.present == '1'
         run: npm run site:build
 
       - name: Garde de taille des fonctions du site (< 50 lignes)
+        if: steps.present.outputs.present == '1'
         run: node tools/check-function-limits.mjs --racine site/src
 
       - name: Configurer Pages
+        if: steps.present.outputs.present == '1'
         uses: actions/configure-pages@v5
 
       - name: Téléverser l'artefact
+        if: steps.present.outputs.present == '1'
         uses: actions/upload-pages-artifact@v3
         with:
           path: site/dist
@@ -76,6 +99,7 @@ jobs:
   deploy:
     name: deploy
     needs: build
+    if: needs.build.outputs.present == '1'
     runs-on: [self-hosted, linux, x64, banc-worker]
     timeout-minutes: 5
     environment:
@@ -85,3 +109,4 @@ jobs:
       - name: Déployer sur GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
