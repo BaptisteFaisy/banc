@@ -14,7 +14,7 @@
     "site:typecheck": "tsc -p site/tsconfig.json --noEmit",
     "site:dev": "vite --config site/vite.config.ts",
     "site:preview": "vite preview --config site/vite.config.ts",
-    "seed": "node --experimental-strip-types src/seed/cli.ts",
+    "seed": "vite-node src/seed/cli.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
@@ -30,6 +30,7 @@
     "react-dom": "^18.3.0",
     "typescript": "^5.6.0",
     "vite": "^5.4.0",
+    "vite-node": "^2.1.0",
     "vitest": "^2.1.0"
   },
   "dependencies": {
