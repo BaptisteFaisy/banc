@@ -13,8 +13,8 @@
 
 ## Ce qui reste à faire, par ordre de valeur
 
-> Note de la branche A : la视频 de soumission est l livré le premier ; le
-> rapport exportable passe ensuite.
+> Note de la branche B : l'export pour auditeur est prioritaire, parce que
+> la conformité l'attend avant la vidéo.
 
 1. **Le rapport exportable pour auditeur** (BE-29) — l'écran Confluence existe
    dans le manifeste, l'export reste à écrire.
