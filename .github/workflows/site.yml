@@ -70,7 +70,7 @@ jobs:
           if [ -d node_modules ] && [ "$LOCK_HASH" = "$(cat "$MARKER" 2>/dev/null)" ]; then
             echo "node_modules deja a jour - installation sautee"
           else
-            npm ci --prefer-offline --no-audit --no-fund
+            npm ci --prefer-offline --no-audit --no-fund --legacy-peer-deps
             printf '%s' "$LOCK_HASH" > "$MARKER"
           fi
 

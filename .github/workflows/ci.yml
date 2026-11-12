@@ -65,7 +65,7 @@ jobs:
             echo "node_modules copie depuis le magasin $STORE"
           else
             echo "installation des dependances (a froid)..."
-            npm ci --prefer-offline --no-audit --no-fund
+            npm ci --prefer-offline --no-audit --no-fund --legacy-peer-deps
             printf '%s' "$LOCK_HASH" > "$MARKER"
             # On alimente le magasin pour les runs suivants de ce runner.
             mkdir -p "$STORE" && rm -rf "$STORE/node_modules" \
