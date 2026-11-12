@@ -3,7 +3,8 @@
  * mort (§6.4). Le cas R-04 vient de la donnée de démonstration : il est
  * repris mot pour mot du cahier des charges.
  */
-import { FAILURE_CASE, ORACLE_HEALTH } from '../demo-data';
+import { useDemoFacts } from '../demo-context';
+import type { DemoFacts } from '../demo-facts';
 import { Callout, Section, StateChip } from '../ui';
 
 const DERIVED_EXAMPLES = [
@@ -68,7 +69,9 @@ function RefusalCard() {
   );
 }
 
-function RuleCaseBlock() {
+function RuleCaseBlock({ facts }: { readonly facts: DemoFacts }) {
+  const FAILURE_CASE = facts.failure;
+  if (!FAILURE_CASE) return null;
   return (
     <div className="rule-case" aria-labelledby="rule-case-title">
       <p className="rule-case__kicker">Case R-04, in full</p>
@@ -95,7 +98,8 @@ function RuleCaseBlock() {
   );
 }
 
-function DeadOracle() {
+function DeadOracle({ facts }: { readonly facts: DemoFacts }) {
+  const ORACLE_HEALTH = facts.oracleHealth;
   return (
     <Callout tone="warn" title="And the dead oracle">
       <p>
@@ -116,6 +120,7 @@ function DeadOracle() {
 }
 
 export default function Oracles() {
+  const facts = useDemoFacts();
   return (
     <Section
       id="oracles"
@@ -128,8 +133,8 @@ export default function Oracles() {
         <RuleCard />
         <RefusalCard />
       </div>
-      <RuleCaseBlock />
-      <DeadOracle />
+      {facts && <RuleCaseBlock facts={facts} />}
+      {facts && <DeadOracle facts={facts} />}
     </Section>
   );
 }

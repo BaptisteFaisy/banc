@@ -3,10 +3,12 @@
  * quand il n'a pas la mesure.
  */
 import { CALIBRATION_THRESHOLD } from '../../../src/score/floors.js';
-import { DEMO_BUDGET, ORACLE_HEALTH, SAMPLE_MINIMUM } from '../demo-data';
+import { DEMO_BUDGET, SAMPLE_MINIMUM } from '../demo-data';
+import { useDemoFacts } from '../demo-context';
 import { Section, StateChip } from '../ui';
 
-const REFUSALS = [
+function refusals(dead: number, total: number, deadRate: number): readonly { title: string; body: string; shown: string }[] {
+  return [
   {
     title: 'No gauge without a sample size or a range.',
     body: `A gauge computed on ${SAMPLE_MINIMUM - 2} cases is not published as a percentage: the bench displays "not enough data" and says how many cases it would need.`,
@@ -14,8 +16,8 @@ const REFUSALS = [
   },
   {
     title: 'A dead oracle is displayed.',
-    body: `Dead oracles do not count in the score, and their rate is on the scorecard: ${ORACLE_HEALTH.dead} of ${ORACLE_HEALTH.total} cases, ${Math.round(ORACLE_HEALTH.deadRate * 100)}% in the seeded bench.`,
-    shown: 'dead oracle: 5%',
+    body: `Dead oracles do not count in the score, and their rate is on the scorecard: ${dead} of ${total} cases, ${Math.round(deadRate * 100)}% in the seeded bench.`,
+    shown: `dead oracle: ${Math.round(deadRate * 100)}%`,
   },
   {
     title: 'An uncalibrated gauge is marked.',
@@ -32,9 +34,12 @@ const REFUSALS = [
     body: 'It can neither grade nor attest. The human jury is the only fallback authority, and the agreement between the two is published.',
     shown: 'separation of roles',
   },
-] as const;
+];
+}
 
 export default function Honesty() {
+  const facts = useDemoFacts();
+  const health = facts?.oracleHealth;
   return (
     <Section
       id="honesty"
@@ -43,7 +48,7 @@ export default function Honesty() {
       intro="A bench that is wrong in silence is worse than no bench. These are the five things the product refuses to hide."
     >
       <ul className="refusals">
-        {REFUSALS.map((item) => (
+        {refusals(health?.dead ?? 0, health?.total ?? 40, health?.deadRate ?? 0).map((item) => (
           <li className="refusal" key={item.title}>
             <h3 className="refusal__title">{item.title}</h3>
             <p className="refusal__body">{item.body}</p>

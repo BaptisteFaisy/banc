@@ -65,6 +65,17 @@ export const GAUGES: readonly Gauge[] = [
  * - coût 0 : asymétrie documentée en tête de fichier — le coût est un
  *   PLAFOND (GAUGE_CEILINGS), pas un plancher. 0 = jamais en échec ici.
  */
+/**
+ * Barre de promotion sur la stabilité.
+ *
+ * Plus stricte que le plancher de la jauge : §9 — « un agent juste mais
+ * instable est inexploitable en production ». Le plancher d'une jauge
+ * indique si la mesure est exploitable ; la barre de promotion indique si
+ * l'agent peut être livré. Un agent qui fissure 5 % de ses cas peut passer
+ * l'une et pas l'autre.
+ */
+export const PROMOTION_STABILITY_FLOOR = 0.95;
+
 export const GAUGE_FLOORS: Readonly<Record<Gauge, number>> = {
   exactitude: 0.9,
   fondation: 0.85,

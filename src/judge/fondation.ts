@@ -10,7 +10,8 @@
  *
  * La fondation est bloquante : ce n'est pas un indice de satisfaction (§31).
  */
-import type { AgentCitation, Verdict } from '../domain/vocabulary.js';
+import type { AgentCitation, RefusalOracleSpec, Verdict } from '../domain/vocabulary.js';
+import { classifyRefusal } from '../oracle/refusal.js';
 import { deadOracleVerdict, incidentVerdict, makeVerdict, resolvedRatio } from './deps.js';
 import type { JudgeInput } from './deps.js';
 
@@ -19,6 +20,15 @@ export function judgeFondation(input: JudgeInput): Verdict | null {
   if (!input.oracle.alive) return deadOracleVerdict(input, 'fondation');
   const incident = incidentVerdict(input, 'fondation');
   if (incident) return incident;
+  // Un refus n'affirme rien : il n'y a donc aucune affirmation à fonder, et
+  // la jauge ne s'y applique pas. Compter un refus sans citation comme une
+  // fondation nulle condamnerait l'agent pour avoir bien refusé — le
+  // contraire du §6.3, où le refus correct est une jauge à part entière.
+  if (input.kase.oracleType === 'refus_attendu' && !input.kase.amorce) {
+    const spec = input.kase.oracleSpec as RefusalOracleSpec;
+    const refusal = classifyRefusal(spec, input.passage.answer);
+    if (refusal.refused) return null;
+  }
   const citations = input.citationsResolved;
   if (citations.length === 0) {
     return makeVerdict(input, 'fondation', 'infonde', 0, {

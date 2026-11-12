@@ -7,15 +7,9 @@
  */
 import { useState, type KeyboardEvent } from 'react';
 import { EN } from '../../../src/i18n/en.js';
-import {
-  COST_CEILING,
-  CRACK_CASE,
-  DRIFT_CASE,
-  FAILURE_CASE,
-  REGRESSIONS_V5,
-  SCORECARDS,
-  VERSIONS,
-} from '../demo-data';
+import { COST_CEILING, VERSIONS } from '../demo-data';
+import { useDemoFacts } from '../demo-context';
+import type { DemoFacts } from '../demo-facts';
 import type { Gauge, GaugeDelta, Scorecard, ScorecardRow } from '../../../src/domain/vocabulary.js';
 import { Section, StateChip } from '../ui';
 
@@ -92,7 +86,9 @@ function GaugeCell({ scorecard, gauge }: { scorecard: Scorecard; gauge: Gauge })
   );
 }
 
-function ScorecardPanel() {
+function ScorecardPanel({ facts }: { readonly facts: DemoFacts }) {
+  const SCORECARDS = facts.scorecards;
+  const REGRESSIONS_V5 = facts.versions.find((version) => version.id === 'v5')?.regressions ?? [];
   return (
     <div className="demo__body">
       <div className="table-scroll">
@@ -143,7 +139,9 @@ function ScorecardPanel() {
   );
 }
 
-function FailurePanel() {
+function FailurePanel({ facts }: { readonly facts: DemoFacts }) {
+  const FAILURE_CASE = facts.failure;
+  if (!FAILURE_CASE) return null;
   return (
     <div className="demo__body">
       <p className="demo__case">
@@ -190,7 +188,9 @@ function FailurePanel() {
   );
 }
 
-function DriftPanel() {
+function DriftPanel({ facts }: { readonly facts: DemoFacts }) {
+  const DRIFT_CASE = facts.drift;
+  if (!DRIFT_CASE) return null;
   return (
     <div className="demo__body">
       <p className="demo__case">
@@ -239,7 +239,9 @@ function DriftPanel() {
   );
 }
 
-function CrackPanel() {
+function CrackPanel({ facts }: { readonly facts: DemoFacts }) {
+  const CRACK_CASE = facts.crack;
+  if (!CRACK_CASE) return null;
   return (
     <div className="demo__body">
       <p className="demo__case">
@@ -270,15 +272,16 @@ function CrackPanel() {
   );
 }
 
-function panelFor(id: TabId) {
-  if (id === 'failure') return <FailurePanel />;
-  if (id === 'drift') return <DriftPanel />;
-  if (id === 'crack') return <CrackPanel />;
-  return <ScorecardPanel />;
+function panelFor(id: TabId, facts: DemoFacts) {
+  if (id === 'failure') return <FailurePanel facts={facts} />;
+  if (id === 'drift') return <DriftPanel facts={facts} />;
+  if (id === 'crack') return <CrackPanel facts={facts} />;
+  return <ScorecardPanel facts={facts} />;
 }
 
 export default function Demo() {
   const [active, setActive] = useState<TabId>('scorecard');
+  const facts = useDemoFacts();
 
   function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
     const index = TABS.findIndex((tab) => tab.id === active);
@@ -326,7 +329,11 @@ export default function Demo() {
           aria-labelledby={`tab-${active}`}
           tabIndex={0}
         >
-          {panelFor(active)}
+          {facts ? panelFor(active, facts) : (
+            <p className="demo__note" role="status">
+              Computing the bench — recalculating oracles, running 3 passages per case, judging eight gauges…
+            </p>
+          )}
         </div>
       </div>
     </Section>

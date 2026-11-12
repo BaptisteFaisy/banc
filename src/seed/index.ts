@@ -15,6 +15,8 @@ import { RULE_CASES, RULE_COUNT } from './cases-rule.js';
 import { SEED_AGENT, SEED_VERSIONS, VERSION_V4, VERSION_V5, VERSION_V6 } from './agents.js';
 import { buildSuites, SUITE_IDS } from './suites.js';
 import { hashValue } from '../oracle/hash.js';
+import { readPathSimple } from '../oracle/deps.js';
+import { CONFLUENCE_TRUTH, GRAPH_TRUTH, JIRA_TRUTH, JSM_TRUTH } from './truth.js';
 
 /** Les 40 cas du corpus de démonstration, dans l'ordre d'affichage. */
 export const SEED_CASES: readonly BancCase[] = [
@@ -105,21 +107,38 @@ export function seedOracleStates(cases: readonly BancCase[] = SEED_CASES): Reado
 function historyFor(kase: BancCase): readonly OracleState[] {
   if (kase.oracleType !== 'valeur_dérivée') return [];
   const value = seedValueOf(kase);
-  const first = stateOf(kase.id, 1, value, '2026-11-05T06:00:00Z');
-  if (kase.id !== 'D-13') return [first];
-  // D-13 : la vérité a changé mardi — deux versions, donc une dérive prouvée.
-  return [first, stateOf(kase.id, 2, 2, '2026-11-10T06:00:00Z', '2026-11-10T06:00:00Z')];
+  // D-13 : la vérité a changé mardi. La version 1 porte la vérité D'AVANT
+  // (zéro incident critique), la version 2 celle d'après — c'est ce couple
+  // qui rend la dérive PROUVABLE, et non une intention de démonstration.
+  if (kase.id === 'D-13') {
+    return [
+      stateOf(kase.id, 1, 0, '2026-11-05T06:00:00Z'),
+      stateOf(kase.id, 2, value, '2026-11-10T06:00:00Z', '2026-11-10T06:00:00Z'),
+    ];
+  }
+  return [stateOf(kase.id, 1, value, '2026-11-05T06:00:00Z')];
 }
 
-/** Valeur seedée d'un cas à valeur dérivée. */
+/**
+ * Valeur seedée d'un cas à valeur dérivée.
+ *
+ * Elle est LUE dans les sources semées, pas recopiée dans une table : une
+ * table en double les valeurs et finit par diverger — c'est exactement ce
+ * qu'un cas d'amorce neglected a révélé (sa valeur était vide, et l'agent
+ * répondait juste avec une valeur vide).
+ */
 function seedValueOf(kase: BancCase): string | number | boolean | readonly string[] {
-  const byId: Record<string, string | number | boolean | readonly string[]> = {
-    'D-01': 'Équipe Paiements', 'D-02': 'PAY-87', 'D-03': true, 'D-04': 1,
-    'D-05': 'TP-17 — couverture AC-3', 'D-06': 3, 'D-07': 'Équipe Identité',
-    'D-08': 'passed', 'D-09': 4, 'D-10': '2026-11-10', 'D-11': ['service-legacy-facturation', 'service-notifications', 'service-rapports'],
-    'D-12': true, 'D-13': 0, 'D-14': 'Procédure de restauration — base paiements', 'D-15': false,
+  const spec = kase.oracleSpec;
+  if (spec.type !== 'valeur_dérivée') return '';
+  const sources: Record<string, Readonly<Record<string, unknown>>> = {
+    graph: GRAPH_TRUTH, jira: JIRA_TRUTH, confluence: CONFLUENCE_TRUTH, jsm: JSM_TRUTH,
   };
-  return byId[kase.id] ?? '';
+  const data = sources[spec.source];
+  if (!data || !(spec.query in data)) return '';
+  const value = readPathSimple(data[spec.query], spec.path);
+  if (value === undefined || value === null) return '';
+  if (Array.isArray(value)) return value as readonly string[];
+  return value as string | number | boolean;
 }
 
 /** Construit un état de vérité. */

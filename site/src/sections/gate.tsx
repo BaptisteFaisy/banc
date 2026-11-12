@@ -2,7 +2,8 @@
  * La porte de promotion (§11). Le banc n'est pas un rapport : c'est une porte,
  * et elle est branchée sur le workflow du ticket de version.
  */
-import { GATE_STABILITY_FLOOR, GATE_V5, GATE_V6 } from '../demo-data';
+import { GATE_STABILITY_FLOOR } from '../demo-data';
+import { useDemoFacts } from '../demo-context';
 import type { PromotionMotive, PromotionVerdict } from '../../../src/domain/vocabulary.js';
 import { Callout, Section, StateChip } from '../ui';
 
@@ -71,6 +72,7 @@ function GateResult({ verdict }: { verdict: PromotionVerdict }) {
 }
 
 export default function Gate() {
+  const facts = useDemoFacts();
   return (
     <Section
       id="gate"
@@ -117,8 +119,8 @@ export default function Gate() {
       </div>
 
       <div className="gate-results">
-        <GateResult verdict={GATE_V5} />
-        <GateResult verdict={GATE_V6} />
+        {facts && <GateResult verdict={facts.gateV5} />}
+        {facts && <GateResult verdict={facts.gateV6} />}
       </div>
 
       <Callout tone="info" title="How to read the two results">

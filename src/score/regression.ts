@@ -73,6 +73,33 @@ export function listDrifts(all: readonly Regression[]): readonly Regression[] {
   return all.filter((item) => item.kind === 'truth_drift');
 }
 
+/**
+ * Enregistre une dérive de vérité, même quand le score n'a pas bougé.
+ *
+ * C'est le cas le plus important du produit : « la vérité a changé mardi,
+ * l'agent n'a rien raté ». Aucun écart de score ne le révèle — seule
+ * l'empreinte de l'oracle le sait. Sans cet enregistrement, la dérive
+ * n'apparaîtrait que lorsqu'elle coïncide avec une régression, et le
+ * banc laisserait passer exactement le cas qu'il prétend distinguer.
+ */
+export function recordTruthDrift(input: {
+  caseId: string; gauge: Gauge; agentVersionId: string; baselineVersionId: string;
+  openedAt: string; evidence: TruthEvidence; id?: string;
+}): Regression {
+  return {
+    id: input.id ?? `drift:${input.agentVersionId}:${input.caseId}`,
+    agentVersionId: input.agentVersionId,
+    baselineVersionId: input.baselineVersionId,
+    caseId: input.caseId,
+    gauge: input.gauge,
+    delta: 0,
+    kind: 'truth_drift',
+    openedAt: input.openedAt,
+    state: 'close_dérive',
+    truthEvidence: input.evidence,
+  };
+}
+
 /** Clôt une régression en dérive de vérité, avec la preuve du changement. */
 export function closeOnDrift(reg: Regression, evidence: TruthEvidence): Regression {
   return { ...reg, kind: 'truth_drift', state: 'close_dérive', truthEvidence: evidence };

@@ -16,7 +16,7 @@
  * comme `JSON.stringify`).
  */
 
-import { createHash } from 'node:crypto';
+import { sha256 } from './sha256.js';
 
 import type { SpecFingerprint } from '../domain/vocabulary.js';
 
@@ -74,7 +74,7 @@ export function serialiseStable(value: unknown): string {
 
 /** SHA-256 hexadécimal de la sérialisation stable d'une valeur. */
 export function hashValue(value: unknown): string {
-  return createHash('sha256').update(serialiseStable(value)).digest('hex');
+  return sha256(serialiseStable(value));
 }
 
 /** Objet dérivé de l'empreinte de spécification, exactement les champs exigés. */

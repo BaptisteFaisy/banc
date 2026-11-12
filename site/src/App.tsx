@@ -2,6 +2,7 @@
  * Assemblage du site public : une page, treize sections, un pied de page.
  */
 import Demo from './sections/demo';
+import { DemoProvider } from './demo-context';
 import Drift from './sections/drift';
 import Footer from './sections/footer';
 import Gate from './sections/gate';
@@ -21,8 +22,9 @@ export default function App() {
       <a className="skip" href="#main">
         Skip to content
       </a>
-      <Nav />
-      <main id="main" className="main">
+      <DemoProvider>
+        <Nav />
+        <main id="main" className="main">
         <Hero />
         <Problem />
         <Oracles />
@@ -34,8 +36,9 @@ export default function App() {
         <Demo />
         <Honesty />
         <Judges />
-      </main>
-      <Footer />
+        </main>
+        <Footer />
+      </DemoProvider>
     </>
   );
 }

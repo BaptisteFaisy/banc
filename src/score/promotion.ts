@@ -22,11 +22,15 @@
 import type {
   BancCase, Gauge, PromotionMotive, PromotionVerdict, Regression, Scorecard, ScorecardRow,
 } from '../domain/vocabulary.js';
-import { GAUGE_FLOORS, STABILITY_FLOOR } from './floors.js';
+import { GAUGE_FLOORS, PROMOTION_STABILITY_FLOOR } from './floors.js';
 import { blockingRegressions } from './regression.js';
 
-/** Plancher de stabilité par défaut, si la porte n'en reçoit pas. */
-export const DEFAULT_STABILITY_FLOOR = STABILITY_FLOOR;
+/**
+ * Barre de stabilité par défaut, si la porte n'en reçoit pas.
+ *
+ * La BARRE de promotion, plus stricte que le plancher de la jauge (§9).
+ */
+export const DEFAULT_STABILITY_FLOOR = PROMOTION_STABILITY_FLOOR;
 
 /** Entrée de la porte. */
 export interface PromotionInput {

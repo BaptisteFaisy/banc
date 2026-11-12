@@ -152,12 +152,24 @@ function canonical(text: string): string {
   return text.replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
-/** Un motif cité correspond-il à un motif attendu (label ou identifiant) ? */
+/**
+ * Un motif cité correspond-il à un motif attendu (label ou identifiant) ?
+ *
+ * L'agent cite ses motifs en PHRASE LIBRE : « Facteurs vérifiés : Aucun gel
+ * actif ; Aucun incident critique ». Comparer par égalité stricte ne
+ * reconnaissait jamais ces citations — le banc concluait que l'agent n'avait
+ * cité aucun motif alors qu'il les avait tous nommés. La correspondance est
+ * donc une INCLUSION du motif attendu dans le texte cité.
+ */
 function matchesMotive(cited: string, spec: RuleOracleSpec, wanted: readonly string[]): boolean {
-  const needle = canonical(cited);
-  return spec.atoms.some(
-    (atom) => wanted.includes(atom.label) && (canonical(atom.label) === needle || canonical(atom.id) === needle),
-  );
+  const haystack = canonical(cited);
+  if (haystack.length === 0) return false;
+  return spec.atoms.some((atom) => {
+    if (!wanted.includes(atom.label)) return false;
+    const label = canonical(atom.label);
+    const id = canonical(atom.id);
+    return haystack === label || haystack === id || haystack.includes(label) || haystack.includes(id);
+  });
 }
 
 /** Compare les motifs cités par l'agent aux motifs attendus (§6.2). */

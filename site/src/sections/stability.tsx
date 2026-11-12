@@ -2,7 +2,8 @@
  * Passages, fissures et stabilité (§9). Un cas n'est jamais jugé sur une
  * réponse isolée, et une fissure a toujours une attribution.
  */
-import { CRACK_CASE, PASSES } from '../demo-data';
+import { PASSES } from '../demo-data';
+import { useDemoFacts } from '../demo-context';
 import { Callout, Section, StateChip } from '../ui';
 
 const VERDICT_LABEL: Record<string, string> = {
@@ -14,6 +15,9 @@ const VERDICT_LABEL: Record<string, string> = {
 };
 
 export default function Stability() {
+  const facts = useDemoFacts();
+  const CRACK_CASE = facts?.crack;
+  if (!CRACK_CASE) return null;
   return (
     <Section
       id="stability"

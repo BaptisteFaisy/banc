@@ -2,7 +2,8 @@
  * La distinction centrale (§7) : dérive de vérité ≠ régression de l'agent.
  * Les deux cas, côte à côte.
  */
-import { DRIFT_CASE } from '../demo-data';
+import { useDemoFacts } from '../demo-context';
+import type { DemoFacts } from '../demo-facts';
 import { Callout, Section, StateChip } from '../ui';
 
 function RegressionCard() {
@@ -38,7 +39,9 @@ function DriftCard() {
   );
 }
 
-function DriftExample() {
+function DriftExample({ facts }: { readonly facts: DemoFacts }) {
+  const DRIFT_CASE = facts.drift;
+  if (!DRIFT_CASE) return null;
   return (
     <div className="drift-example">
       <p className="drift-example__case">
@@ -70,6 +73,7 @@ function DriftExample() {
 }
 
 export default function Drift() {
+  const facts = useDemoFacts();
   return (
     <Section
       id="drift"
@@ -81,7 +85,7 @@ export default function Drift() {
         <RegressionCard />
         <DriftCard />
       </div>
-      <DriftExample />
+      {facts && <DriftExample facts={facts} />}
       <Callout tone="info" title="Why it matters">
         <p>
           Every case keeps a history of truth — oracle version, computation date, value hash. That is
