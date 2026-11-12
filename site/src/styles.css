@@ -312,3 +312,12 @@ a:hover {
   html {
     scroll-behavior: auto;
   }
+
+/* Le lot d'or SAM Vision : provenance et vérité dérivée. */
+.golden-list { list-style: none; margin: 0; padding: 0; }
+.golden-case { border: 1px solid #dfe1e6; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+.golden-case__head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.golden-case__question { font-weight: 600; }
+.golden-case__answer { margin: 8px 0 4px; }
+.golden-case__source { font-size: 0.85rem; color: #42526e; display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.golden-case__quote { font-family: ui-monospace, monospace; background: #f4f5f7; padding: 1px 6px; border-radius: 4px; }

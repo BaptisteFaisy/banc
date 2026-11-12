@@ -15,6 +15,7 @@ import Oracles from './sections/oracles';
 import Problem from './sections/problem';
 import Screens from './sections/screens';
 import Stability from './sections/stability';
+import Vision from './sections/vision';
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
         <Gauges />
         <Stability />
         <Gate />
+        <Vision />
         <Screens />
         <Demo />
         <Honesty />
