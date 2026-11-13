@@ -78,3 +78,4 @@ Et l'actif durable : le corpus est une représentation **exécutable** de ce que
 l'organisation sait et attend de ses machines. Il survit aux agents, aux
 modèles et aux éditeurs. C'est la seule partie du dispositif qui ait de la
 valeur à dix ans.
+
