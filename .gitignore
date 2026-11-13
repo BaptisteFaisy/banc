@@ -10,3 +10,5 @@ __pycache__/
 *.pyc
 site/dist/
 _site/
+# Rapports générés par `npm run report:export` (BE-29) : artefacts, pas source.
+site/public/generated/

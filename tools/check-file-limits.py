@@ -15,7 +15,9 @@ import sys
 MAX_LINES = 500
 EXTENSIONS = {'.ts', '.tsx', '.js', '.jsx', '.mjs', '.py', '.yml', '.yaml', '.md'}
 # Dossiers régénérables ou qui ne viennent pas du dépôt.
-EXCLUDE_DIRS = {'node_modules', '.git', 'dist', 'build', '.npm-state', '__pycache__', '.github'}
+# `generated` : artefacts produits par un script (ex. le rapport d'essai
+# exportable, BE-29) — ils se découpent par la mesure, pas par la main.
+EXCLUDE_DIRS = {'node_modules', '.git', 'dist', 'build', '.npm-state', '__pycache__', '.github', 'generated'}
 # Fichiers générés, jamais écrits à la main.
 EXCLUDE_FILES = {'package-lock.json', 'pnpm-lock.yaml'}
 

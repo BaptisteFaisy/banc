@@ -11,8 +11,8 @@
  * une transcription. C'est la différence entre une démo et une illustration.
  */
 import type {
-  BancCase, Fissure, OracleHealth, OracleState, PromotionVerdict, Regression,
-  Scorecard, Verdict,
+  AgentCitation, BancCase, Fissure, OracleHealth, OracleState, PromotionVerdict,
+  Regression, Scorecard, Verdict,
 } from '../domain/vocabulary.js';
 import { DEFAULT_PASSES } from '../domain/vocabulary.js';
 import { recomputeOracle } from '../oracle/recompute.js';
@@ -38,6 +38,8 @@ export interface CaseOutcome {
   readonly oracle: OracleState;
   readonly verdicts: readonly Verdict[];
   readonly answers: readonly string[];
+  /** Citations produites par l'agent : la preuve de fondation du rapport (§8). */
+  readonly citations: readonly AgentCitation[];
   readonly crack: Fissure | null;
 }
 
@@ -119,7 +121,8 @@ async function playCase(
   return {
     caseId: kase.id, question: kase.question, gravity: kase.gravity,
     oracleType: kase.oracleType, oracle, verdicts: withStab,
-    answers: played.passages.map((passage) => passage.answer.text), crack,
+    answers: played.passages.map((passage) => passage.answer.text),
+    citations: played.passages[0]?.answer.citations ?? [], crack,
   };
 }
 

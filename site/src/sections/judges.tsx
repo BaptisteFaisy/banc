@@ -65,6 +65,12 @@ export default function Judges() {
         </ol>
       </div>
       <p className="lede">
+        A trial can be exported for an auditor — the gate and its reasons, the eight gauges, the
+        regressions, the truth drifts and the case-by-case evidence, sealed by a SHA-256 digest:{' '}
+        <a href="generated/audit-report.md" rel="noreferrer">read the audit report</a>, or regenerate
+        it with <code>npm run report:export</code>.
+      </p>
+      <p className="lede">
         Open source, MIT licence: <a href={REPO_URL} rel="noreferrer">{REPO_LABEL}</a>. The corpus is
         exportable, the seeding script is in the repository, and the demo video shows a run against a
         site connected to real data.
