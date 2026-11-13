@@ -78,6 +78,13 @@ jobs:
         if: steps.present.outputs.present == '1'
         run: npx tsc -p site/tsconfig.json --noEmit
 
+      # Le rapport d'essai exportable (BE-29, §18) est généré AVANT le build :
+      # il vit dans `site/public/generated/` (gitignoré) et le dossier public
+      # le recopie dans l'artefact Pages. Déterministe, aucun réseau.
+      - name: Rapport d'essai exportable (BE-29)
+        if: steps.present.outputs.present == '1'
+        run: npm run report:export
+
       - name: Build du site (vite)
         if: steps.present.outputs.present == '1'
         run: npm run site:build

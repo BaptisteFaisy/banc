@@ -19,7 +19,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "build": "vite build --config site/vite.config.ts",
-    "demo:real": "vite-node src/demo/real-run-cli.ts"
+    "demo:real": "vite-node src/demo/real-run-cli.ts",
+    "report:export": "vite-node src/report/cli.ts"
   },
   "devDependencies": {
     "@forge/manifest": "^1.5.0",
