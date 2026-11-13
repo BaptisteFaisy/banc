@@ -9,15 +9,17 @@
 | 25 nov. – 1ᵉʳ déc. | Stabilité et fissures, empreinte de spécification, témoin, lot d'or, banc de fumée, journal d'essai | **fait** : fissures avec attribution, empreinte, témoin, lot d'or curaté, journal rejouable |
 | 2 – 8 déc. | Porte de promotion (outil + verrou), scorecards, explorateur d'échecs, mode blanc / noir, isolation | **fait** : porte à cinq règles, verrou de workflow, scorecards, modes séparés, isolation |
 | 9 – 15 déc. | Outils MCP, agent Rovo « Le jury », skill, batterie d'amorces, jury humain et étalonnage ; **gel des fonctionnalités le 15** | **fait** : 12 outils, agent « Le jury », skill publiée, batterie, jury et calibrage |
-| 16 – 22 déc. | Recette, banc de démonstration semé, rapport exportable, vidéo, instructions pour les jugés, soumission | **partiel** : recette (22 points), banc semé, instructions aux jugés ; **reste** : rapport exportable, vidéo |
+| 16 – 22 déc. | Recette, banc de démonstration semé, rapport exportable, vidéo, instructions pour les jugés, soumission | **partiel** : recette (22 points), banc semé, instructions aux jugés, rapport exportable ; **reste** : vidéo |
 
 ## Ce qui reste à faire, par ordre de valeur
 
 > Note de la branche B : l'export pour auditeur est prioritaire, parce que
 > la conformité l'attend avant la vidéo.
 
-1. **Le rapport exportable pour auditeur** (BE-29) — l'écran Confluence existe
-   dans le manifeste, l'export reste à écrire.
+1. ~~**Le rapport exportable pour auditeur** (BE-29)~~ — **fait** : le
+   rapport s'exporte en JSON scellé SHA-256 et en Markdown
+   (`npm run report:export`), il est servi par le site et vérifié par neuf
+   tests. L'écran Confluence reste à écrire côté Forge.
 2. **La vidéo** (§28) — le récit est écrit dans `docs/JUDGES.md` et dans les
    sections du site ; il reste le montage.
 3. **Les tests d'outils MCP** (BE-27) : contrat d'interface, erreurs,
