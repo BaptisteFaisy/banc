@@ -11,6 +11,8 @@
 | 9 – 15 déc. | Outils MCP, agent Rovo « Le jury », skill, batterie d'amorces, jury humain et étalonnage ; **gel des fonctionnalités le 15** | **fait** : 12 outils, agent « Le jury », skill publiée, batterie, jury et calibrage |
 | 16 – 22 déc. | Recette, banc de démonstration semé, rapport exportable, vidéo, instructions pour les jugés, soumission | **partiel** : recette (22 points), banc semé, instructions aux jugés, rapport exportable ; **reste** : vidéo |
 
+<!-- Mesure du cycle PR→merge : PR jeton, fusionnée puis revertée. -->
+
 ## Ce qui reste à faire, par ordre de valeur
 
 > Note de la branche B : l'export pour auditeur est prioritaire, parce que
