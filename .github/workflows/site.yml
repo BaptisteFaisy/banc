@@ -30,7 +30,7 @@ permissions:
 jobs:
   build:
     name: build
-    runs-on: [self-hosted, linux, x64, banc-worker]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
       present: ${{ steps.present.outputs.present }}
@@ -44,6 +44,14 @@ jobs:
       # Le site public arrive après le socle : tant que `site/` n'existe pas, le
       # workflow s'arrête proprement au lieu de casser `main` sur un dossier
       # absent. Un job qui n'a rien à faire le dit, il ne rougit pas.
+      - name: Identité git (absente par défaut sur un runner GitHub-hosted)
+        run: |
+          git config --global user.name "CI (GitHub Actions)"
+          git config --global user.email "ci@users.noreply.github.com"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
       - name: Vérifier la présence du site
         id: present
         shell: bash
@@ -107,7 +115,7 @@ jobs:
     name: deploy
     needs: build
     if: needs.build.outputs.present == '1'
-    runs-on: [self-hosted, linux, x64, banc-worker]
+    runs-on: ubuntu-latest
     timeout-minutes: 5
     environment:
       name: github-pages
