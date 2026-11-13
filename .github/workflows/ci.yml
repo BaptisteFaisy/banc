@@ -1,0 +1,135 @@
+name: CI
+
+# CI de l'app Forge « Banc — the agent test bench » : types, tests unitaires,
+# gardes de taille (fichier < 500 lignes, fonction < 50 lignes), manifeste
+# Forge, garde Hermes (auto-tests du résolveur de conflits), sanity docs et
+# tests des gardes CI. Le check publié s'appelle `ci` : il est exigé par le
+# ruleset de `main` et par la file Mergify, comme `ci-budget` et `couche0`.
+#
+# Budget : 5 minutes maximum (règle CI du 24 octobre 2026,
+# `~/Bureau/CI-BUDGET-5MIN.md`). Les runners sont persistants : `node_modules`
+# est conservé d'un run à l'autre et l'installation n'a lieu que si
+# `package-lock.json` a changé. Jamais de timeout allongé : on optimise ou on
+# découpe.
+on:
+  pull_request:
+  # File de merge : même contrôle sur le commit temporaire du groupe.
+  merge_group:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false  # un check requis annulé bloque la file (leçon du 11 nov.)
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          clean: false
+
+      # Runners self-hosted persistants : on garde `node_modules` (l'app
+      # TypeScript), on jette le reste. `git clean -ffdx` sans `-e` effacerait
+      # les dépendances et ferait exploser le budget de 5 minutes.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Dépendances (npm ci)
+        run: npm ci --prefer-offline --no-audit --no-fund
+      - name: Nettoyage du workspace (node_modules conservé)
+        shell: bash
+        run: git clean -ffdx -e /node_modules -e /.npm-state -e /dist -e /site/dist
+
+      - name: Types (tsc --noEmit)
+        run: npx tsc --noEmit
+
+      - name: Tests unitaires (vitest)
+        run: npx vitest run --passWithNoTests
+
+      # Garde user (règle de fin octobre) : aucun fichier au-delà de 500 lignes.
+      - name: Garde de taille des fichiers (< 500 lignes)
+        run: python3 tools/check-file-limits.py
+
+      # Même règle, au niveau des fonctions : moins de 50 lignes de code.
+      - name: Garde de taille des fonctions (< 50 lignes)
+        run: npm run check:functions
+
+      - name: Manifeste Forge
+        run: node tools/check-manifest.mjs
+
+      - name: Workflows GitHub valides (YAML)
+        run: python3 tools/check-workflows-yaml.py
+
+      # Hermes ne devine jamais : soit il prouve son résultat avec la toolchain
+      # du dépôt, soit il escalade à un humain. Ses auto-tests vérifient la
+      # classification des conflits (dérivé / binaire / source), la fusion JSON
+      # sans perte de clé, les garde-fous de sortie du modèle (marqueurs de
+      # conflit refusés, réponse vide refusée, taille absurde refusée), le
+      # câblage de la jambe InferHub, et le cycle complet du résolveur sur des
+      # dépôts jetables (conflit soluble, conflit insoluble escaladé et non
+      # deviné, validation qui bloque sur un check rouge introduit). Stdlib
+      # seule, quelques secondes, aucun réseau et aucune clé requise.
+      # `gate.py` n'a pas d'auto-test : il est exercé en conditions réelles par
+      # le workflow `hermes-lite.yml`, et sa sortie ne dépend que de l'API.
+      - name: Garde Hermes (auto-tests du résolveur de conflits)
+        run: |
+          python3 .github/hermes/resolve.py --selftest
+          python3 .github/hermes/resolver.py --selftest
+
+      - name: Sanity docs (UTF-8, non vides)
+        run: |
+          python3 - <<'EOF'
+          import os
+          exts = {".md", ".mdx", ".txt"}
+          ignores = {".git", "node_modules", "dist", "build", ".npm-state", "coverage"}
+          vides, illisibles, total = [], [], 0
+          for racine, dossiers, fichiers in os.walk("."):
+              dossiers[:] = [d for d in dossiers if d not in ignores]
+              for nom in sorted(fichiers):
+                  if os.path.splitext(nom)[1].lower() not in exts:
+                      continue
+                  chemin = os.path.join(racine, nom)
+                  total += 1
+                  try:
+                      with open(chemin, "r", encoding="utf-8") as fh:
+                          contenu = fh.read()
+                  except (OSError, UnicodeError):
+                      illisibles.append(chemin)
+                      continue
+                  if not contenu.strip():
+                      vides.append(chemin)
+          print("%d doc(s) controle(s)" % total)
+          for chemin in illisibles:
+              print("::error::illisible en UTF-8 : %s" % chemin)
+          for chemin in vides:
+              print("::error::document vide : %s" % chemin)
+          raise SystemExit(1 if (illisibles or vides) else 0)
+          EOF
+
+      # Les gardes de la CI se testent elles-mêmes : couche0 — stdlib, quelques
+      # secondes, aucun réseau.
+      - name: Tests des gardes CI (couche0)
+        run: python3 .github/couche0/test_check_couche0.py
+
+      # Les scripts shell sont vérifiés sans être exécutés (pas de réseau).
+      - name: Syntaxe des scripts shell (s'il y en a)
+        shell: bash
+        run: |
+          trouve=0
+          while IFS= read -r script; do
+            bash -n "$script"
+            echo "bash -n OK : $script"
+            trouve=1
+          done < <(find . -name '*.sh' -not -path './node_modules/*' -not -path './.git/*')
+          if [ "$trouve" = 0 ]; then
+            echo "::notice::aucun script shell - etape ignoree"
+          fi

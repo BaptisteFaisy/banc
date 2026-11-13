@@ -1,0 +1,14 @@
+node_modules
+node_modules/
+dist/
+build/
+.npm-state/
+.forge/
+*.log
+.DS_Store
+__pycache__/
+*.pyc
+site/dist/
+_site/
+# Rapports générés par `npm run report:export` (BE-29) : artefacts, pas source.
+site/public/generated/

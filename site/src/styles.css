@@ -1,0 +1,344 @@
+/* ------------------------------------------------------------------ *
+ * Banc — feuille de style du site public (socle : jetons, base, nav,
+ * en-tête, pied de page). Les blocs vivent dans `styles.sections.css`,
+ * les vues dans `styles.demo.css`.
+ * Sobre : une seule palette, une seule échelle typographique, aucune
+ * police ni image distante (§21).
+ * ------------------------------------------------------------------ */
+
+:root {
+  --bg: #0b0e13;
+  --surface: #121722;
+  --surface-2: #18202c;
+  --border: #2a3442;
+  --text: #e9eef5;
+  --muted: #a7b4c4;
+  --accent: #8fd0ff;
+  --ok: #7ee2a8;
+  --warn: #ffd479;
+  --bad: #ff9d9d;
+  --radius: 10px;
+  --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.55;
+  font-size: 16px;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+a:hover {
+  color: #c8e6ff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-size: 0.92em;
+}
+
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--surface);
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 0 0 var(--radius) 0;
+  z-index: 20;
+}
+
+.skip:focus {
+  left: 0;
+}
+
+/* --------------------------------------------------------------- nav */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(11, 14, 19, 0.94);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0.6rem 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+}
+
+.nav__brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.nav__mark {
+  color: var(--accent);
+}
+
+.nav__name {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.nav__tag {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.nav__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.9rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.nav__links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid transparent;
+}
+
+.nav__links a:hover {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+}
+
+.nav__cta {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.15rem 0.7rem !important;
+}
+
+/* -------------------------------------------------------------- hero */
+
+.main {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 1.25rem;
+}
+
+.hero {
+  padding: 3.5rem 0 2.5rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.4rem;
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  margin: 0 0 1rem;
+  font-size: clamp(2.1rem, 5.5vw, 3.4rem);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.hero__accent {
+  color: var(--accent);
+}
+
+.hero__lead {
+  margin: 0 0 1.8rem;
+  max-width: 60ch;
+  font-size: 1.1rem;
+  color: var(--muted);
+}
+
+.hero__lead strong {
+  color: var(--text);
+}
+
+.hero__result {
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--ok);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 1.2rem 1.4rem;
+  max-width: 76ch;
+}
+
+.hero__result-kicker {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ok);
+}
+
+.hero__result-title {
+  margin: 0.35rem 0 0.6rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.hero__result-text {
+  margin: 0 0 1rem;
+  color: var(--muted);
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.button {
+  display: inline-block;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #06202f;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.button--ghost {
+  background: transparent;
+  color: var(--accent);
+}
+
+.hero__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  list-style: none;
+  margin: 2rem 0 0;
+  padding: 0;
+}
+
+.hero__stats li {
+  border-top: 1px solid var(--border);
+  padding-top: 0.7rem;
+}
+
+.hero__stat-value {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 1.9rem;
+  color: var(--accent);
+}
+
+.hero__stat-label {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* ---------------------------------------------------------- footer */
+
+.footer {
+  border-top: 1px solid var(--border);
+  margin-top: 2rem;
+  padding: 2rem 1.25rem 3rem;
+  max-width: 1120px;
+  margin-inline: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  justify-content: space-between;
+}
+
+.footer__name {
+  margin: 0;
+  font-weight: 700;
+}
+
+.footer__tag {
+  margin: 0;
+  color: var(--muted);
+}
+
+.footer__links p {
+  margin: 0 0 0.3rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* ------------------------------------------------------- responsive */
+
+@media (max-width: 760px) {
+  .try {
+    grid-template-columns: 1fr;
+  }
+
+  .nav__tag {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+/* Le lot d'or SAM Vision : provenance et vérité dérivée. */
+.golden-list { list-style: none; margin: 0; padding: 0; }
+.golden-case { border: 1px solid #dfe1e6; border-radius: 8px; padding: 14px 16px; margin-bottom: 12px; }
+.golden-case__head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.golden-case__question { font-weight: 600; }
+.golden-case__answer { margin: 8px 0 4px; }
+.golden-case__source { font-size: 0.85rem; color: #42526e; display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; }
+.golden-case__quote { font-family: ui-monospace, monospace; background: #f4f5f7; padding: 1px 6px; border-radius: 4px; }
+
+/* La mesure réelle : totaux, scorecard mesurée, fissures, réponses. */
+.real__totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 18px 0 26px; }
+.real__totals div { border: 1px solid #dfe1e6; border-radius: 8px; padding: 10px 12px; }
+.real__totals dt { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #5e6c84; }
+.real__totals dd { margin: 4px 0 0; font-size: 1.1rem; font-weight: 600; }
+.real__cracks, .real__motives { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.real__cracks li { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.real__motives li { display: flex; gap: 10px; align-items: baseline; }
+.real__answer { border: 1px solid #dfe1e6; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+.real__question { font-weight: 600; }
+.real__oracle { margin: 6px 0; font-size: 0.95rem; }
+.real__meta { font-size: 0.8rem; color: #5e6c84; }
+
+/* Barre du banc réel : bouton de rejeu direct et progression. */
+.real__toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin: 4px 0 20px; }
+.real__progress { font-family: ui-monospace, monospace; color: #0052CC; }
+.real__progress--err { color: #DE350B; }
+
+.run-live { font: inherit; font-weight: 600; padding: 10px 18px; border-radius: 8px; border: 1px solid #0052CC; background: #0052CC; color: #fff; cursor: pointer; }
+.run-live:disabled { background: #b8c7e0; border-color: #b8c7e0; cursor: wait; }

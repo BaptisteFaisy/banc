@@ -1,0 +1,438 @@
+/* ------------------------------------------------------------------ *
+ * Banc — blocs partagés : sections, cartes, pastilles, tableaux.
+ * Déclaré après `styles.css` (jetons et base) et avant `styles.demo.css`.
+ * ------------------------------------------------------------------ */
+
+/* ----------------------------------------------------------- sections */
+
+.section {
+  padding: 3rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.section__head {
+  max-width: 70ch;
+  margin-bottom: 1.6rem;
+}
+
+.section h2 {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.5rem, 3vw, 2.1rem);
+  letter-spacing: -0.01em;
+}
+
+.section__intro {
+  margin: 0;
+  color: var(--muted);
+}
+
+.lede {
+  margin: 1.6rem 0 0;
+  max-width: 74ch;
+  color: var(--muted);
+  border-left: 3px solid var(--border);
+  padding-left: 1rem;
+}
+
+.cards {
+  display: grid;
+  gap: 1rem;
+}
+
+.cards--two {
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.cards--three {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.2rem;
+}
+
+.card--bad {
+  border-left: 4px solid var(--bad);
+}
+
+.card--ok {
+  border-left: 4px solid var(--ok);
+}
+
+.card__kicker {
+  margin: 0 0 0.3rem;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.card__title {
+  margin: 0 0 0.6rem;
+  font-size: 1.12rem;
+}
+
+.card__body {
+  margin: 0 0 0.6rem;
+  color: var(--muted);
+}
+
+.tight-list {
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.tight-list li {
+  border-top: 1px solid var(--border);
+  padding-top: 0.45rem;
+}
+
+.tight-list__case {
+  display: block;
+  font-size: 0.94rem;
+}
+
+.tight-list__source {
+  display: block;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+}
+
+/* ------------------------------------------------------------ chips */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.08rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.chip__glyph {
+  font-size: 0.8em;
+}
+
+.chip--ok {
+  color: var(--ok);
+  border-color: rgba(126, 226, 168, 0.45);
+  background: rgba(126, 226, 168, 0.1);
+}
+
+.chip--warn {
+  color: var(--warn);
+  border-color: rgba(255, 212, 121, 0.45);
+  background: rgba(255, 212, 121, 0.1);
+}
+
+.chip--bad {
+  color: var(--bad);
+  border-color: rgba(255, 157, 157, 0.5);
+  background: rgba(255, 157, 157, 0.12);
+}
+
+.chip--info {
+  color: var(--accent);
+  border-color: rgba(143, 208, 255, 0.45);
+  background: rgba(143, 208, 255, 0.1);
+}
+
+.chip--neutral {
+  color: var(--muted);
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+
+/* ---------------------------------------------------------- callout */
+
+.callout {
+  margin-top: 1.8rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 1rem 1.2rem;
+}
+
+.callout--warn {
+  border-left-color: var(--warn);
+}
+
+.callout__title {
+  margin: 0 0 0.4rem;
+  font-weight: 700;
+}
+
+.callout__body p {
+  margin: 0 0 0.6rem;
+  color: var(--muted);
+}
+
+.callout__body p:last-child {
+  margin-bottom: 0;
+}
+
+/* ------------------------------------------------------------ table */
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.93rem;
+}
+
+.data__caption {
+  caption-side: top;
+  text-align: left;
+  padding: 0.8rem 1rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.data th,
+.data td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.data thead th {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.data tbody th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.data tbody tr:last-child th,
+.data tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ------------------------------------------------------------- gate */
+
+.gate-rules {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.gate-rules__key {
+  color: var(--accent);
+  font-family: var(--mono);
+  margin-right: 0.4rem;
+}
+
+.gate-rules__text {
+  display: block;
+}
+
+.gate-rules__detail {
+  display: block;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.gate-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-top: 1.6rem;
+}
+
+.gate-result {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 1rem 1.2rem;
+}
+
+.gate-result__head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin: 0 0 0.8rem;
+}
+
+.gate-result__rules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.gate-result__rule {
+  display: grid;
+  grid-template-columns: 4.6rem 1fr;
+  gap: 0.2rem 0.6rem;
+  align-items: start;
+  border-top: 1px solid var(--border);
+  padding-top: 0.55rem;
+}
+
+.gate-result__name {
+  font-weight: 600;
+}
+
+.gate-result__detail {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+/* ---------------------------------------------------------- screens */
+
+.screens {
+  display: grid;
+  gap: 1.4rem;
+}
+
+.screens__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0.7rem;
+}
+
+.screens__list li {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr;
+  gap: 0 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 0.7rem 0.9rem;
+}
+
+.screens__index {
+  grid-row: 1 / span 2;
+  font-family: var(--mono);
+  color: var(--accent);
+}
+
+.screens__name {
+  font-weight: 600;
+}
+
+.screens__content {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+/* -------------------------------------------------------- refusals */
+
+.refusals {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.refusal {
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: 1rem 1.1rem;
+}
+
+.refusal__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.02rem;
+}
+
+.refusal__body {
+  margin: 0 0 0.7rem;
+  color: var(--muted);
+}
+
+.refusal__shown {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------- try */
+
+.try {
+  display: grid;
+  grid-template-columns: minmax(260px, 340px) 1fr;
+  gap: 1.4rem;
+  align-items: start;
+}
+
+.code {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  color: var(--accent);
+  overflow-x: auto;
+}
+
+.try__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.try__steps li {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  gap: 0 0.6rem;
+  border-top: 1px solid var(--border);
+  padding-top: 0.6rem;
+}
+
+.try__index {
+  font-family: var(--mono);
+  color: var(--accent);
+}
+
+.try__title {
+  display: block;
+}
+
+.try__detail {
+  display: block;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
