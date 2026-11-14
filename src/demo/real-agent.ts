@@ -19,6 +19,7 @@ import type { SourceRegistry } from '../oracle/deps.js';
 import { hashValue } from '../oracle/hash.js';
 import { systemClock } from '../oracle/deps.js';
 import type { AgentFactory } from './real-bench.js';
+import { withProxyFallback, type ProxyCandidate } from './proxy-endpoint.js';
 
 /** Ce qu'un client de chat OpenAI-compatible doit faire. */
 export interface ChatClient {
@@ -63,11 +64,16 @@ export function createHttpChatClient(
   };
 }
 
-/** Client qui passe par le proxy (mode direct navigateur) : aucune clé ici. */
-export function createProxyChatClient(proxyUrl: string): ChatClient {
-  const base = proxyUrl.replace(/\/$/, '');
+/**
+ * Client qui passe par le proxy (mode direct navigateur) : aucune clé ici.
+ *
+ * L'URL du proxy est éphémère (tunnel Cloudflare) : le client reçoit donc une
+ * liste ordonnée de candidates et, à CHAQUE appel, prend la première qui
+ * répond. Un tunnel refait au milieu du banc ne casse pas le run.
+ */
+export function createProxyChatClient(candidates: readonly ProxyCandidate[]): ChatClient {
   return {
-    complete: async ({ system, user }) => {
+    complete: async ({ system, user }) => withProxyFallback(candidates, async (base) => {
       const response = await fetch(`${base}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -78,7 +84,7 @@ export function createProxyChatClient(proxyUrl: string): ChatClient {
       }
       const body = (await response.json()) as { text?: string; tokens?: number };
       return { text: body.text ?? '', tokens: body.tokens ?? 0 };
-    },
+    }),
   };
 }
 
@@ -94,9 +100,12 @@ export function httpAgentFactory(input: {
 }
 
 /** Fabrique d'agent pour le mode direct navigateur (via proxy). */
-export function proxyAgentFactory(input: { readonly proxyUrl: string; readonly price: PriceModel }): AgentFactory {
+export function proxyAgentFactory(input: {
+  readonly candidates: readonly ProxyCandidate[];
+  readonly price: PriceModel;
+}): AgentFactory {
   return ({ cases, oracles, registry }) => createRealAgent({
-    chat: createProxyChatClient(input.proxyUrl),
+    chat: createProxyChatClient(input.candidates),
     price: input.price, cases, oracles, registry,
   });
 }
