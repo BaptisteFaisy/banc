@@ -27,8 +27,8 @@ export interface SourceRef {
  */
 export interface DerivedOracleSpec {
   readonly type: 'valeur_dérivée';
-  /** Source qui détient la vérité : `graph`, `jira`, `confluence`, `jsm`. */
-  readonly source: 'graph' | 'jira' | 'confluence' | 'jsm';
+  /** Source qui détient la vérité : `graph`, `jira`, `confluence`, `jsm`, `repo`. */
+  readonly source: 'graph' | 'jira' | 'confluence' | 'jsm' | 'repo';
   /** Requête prête ou Cypher persisté (§24 : le Cypher brut est refusé). */
   readonly query: string;
   /** Chemin vers la valeur dans la réponse (point ou crochets). */
@@ -52,7 +52,7 @@ export interface RuleAtom {
   readonly id: string;
   /** Ce que l'atome vérifie, lisible — c'est le « motif » attendu (§6.2). */
   readonly label: string;
-  readonly source: 'graph' | 'jira' | 'confluence' | 'jsm';
+  readonly source: 'graph' | 'jira' | 'confluence' | 'jsm' | 'repo';
   readonly query: string;
   readonly path: string;
   /** Comparaison appliquée à la valeur lue. */

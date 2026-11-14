@@ -161,7 +161,7 @@ export interface SourceRead {
 
 /** Adaptateur de source : Jira, Confluence, graphe, JSM (§6.1). */
 export interface SourceAdapter {
-  readonly name: 'graph' | 'jira' | 'confluence' | 'jsm';
+  readonly name: 'graph' | 'jira' | 'confluence' | 'jsm' | 'repo';
   read(query: string): Promise<SourceRead>;
   /** Résout une citation d'agent en document réel (§8 fondation). */
   resolve(ref: SourceRef): Promise<SourceRead>;

@@ -20,11 +20,18 @@ import { playPasses } from '../run/passes.js';
 import { buildScorecard } from '../score/scorecard.js';
 import { checkPromotion } from '../score/promotion.js';
 import { gaugeOfCase } from './run.js';
+import type { TraceTour } from './real-agent.js';
+import { REAL_CORPUS, sceauValide } from '../real/corpus.js';
+import { REAL_CASES, REAL_DEMO_CASE_IDS } from '../real/cases.js';
 
-/** Les cas joués par la démo réelle (CLI et mode direct navigateur). */
-export const DEMO_CASE_IDS = [
-  'D-01', 'D-02', 'D-04', 'D-15', 'R-04', 'R-01', 'R-07', 'F-01', 'F-02', 'F-03', 'A-01', 'A-05',
-] as const;
+/**
+ * Les cas joués par la démo réelle (CLI et mode direct navigateur) : le corpus
+ * RÉEL du dépôt, pas le monde inventé de `src/seed/`.
+ */
+export const DEMO_CASE_IDS: readonly string[] = REAL_DEMO_CASE_IDS;
+
+/** Les cas du banc réel, dans l'ordre des familles (§6). */
+export const DEMO_CASES: readonly BancCase[] = REAL_CASES;
 
 /** La mesure d'un cas, publiée au site. */
 export interface RealCaseRecord {
@@ -39,8 +46,16 @@ export interface RealCaseRecord {
   tokens: number[];
   cost: number;
   citations: number;
+  /** Citations résolues sur un document réel du corpus, sur le total émis. */
+  citationsFondees: number;
   verdicts: { gauge: string; kind: string; value: number | null }[];
   crack: string | null;
+  /** Le modèle réellement servi par le méta-routeur au dernier tour. */
+  modeleServi: string | null;
+  /** Les documents que l'agent a réellement lus (retrieval), par chemin. */
+  docsLus: readonly string[];
+  /** Nombre d'appels au modèle pour ce cas (1 si rien à demander, 2 avec retrieval). */
+  tours: number;
 }
 
 /** La mesure complète d'un banc réel. */
@@ -48,10 +63,18 @@ export interface RealRunRecord {
   meta: {
     model: string; provider: string; recordedAt: string; passes: number;
     mode: TrackedMode; priceUsdPerThousandTokens: number; note: string;
+    /** Provenance du corpus réel : commit capturé, horodatage, empreinte, sceau. */
+    corpus: {
+      commit: string; capture: string; depot: string;
+      documents: number; empreinte: string; sceauValide: boolean; sources: string;
+    };
   };
   totals: {
-    cases: number; calls: number; tokens: number; costUsd: number;
+    cases: number; calls: number; tours: number; tokens: number; costUsd: number;
     latencyMeanMs: number; latencyMaxMs: number; citationsEmitted: number;
+    citationsFondees: number; documentsLus: number;
+    /** Les fournisseurs réellement servis, distincts : un méta-routeur bouge. */
+    modeleservis: readonly string[];
   };
   scorecard: { gauge: string; n: number; value: number | null; floor: number; ciLow: number | null; ciHigh: number | null }[];
   gate: { allowed: boolean; motives: { rule: string; passed: boolean; detail: string }[] };
@@ -66,6 +89,8 @@ export type AgentFactory = (input: {
   readonly cases: readonly BancCase[];
   readonly oracles: Readonly<Record<string, OracleState>>;
   readonly registry: SourceRegistry;
+  /** Consigned après chaque cas : qui a réellement servi, et ce qui a été lu. */
+  readonly trace?: (caseId: string, tour: TraceTour) => void;
 }) => AgentUnderTest;
 
 /** Les entrées du banc réel. */
@@ -79,6 +104,8 @@ export interface RealBenchOptions {
   readonly mode?: TrackedMode;
   /** Progression, appelée après chaque cas joué (mode direct navigateur). */
   readonly onCasePlayed?: (caseId: string, done: number, total: number) => void;
+  /** Le corpus réel dont les oracles sont recalculés ; le corpus capturé par défaut. */
+  readonly corpus?: typeof REAL_CORPUS;
 }
 
 /** Recalcule les oracles de tous les cas joués. */
@@ -97,7 +124,7 @@ async function computeOracles(
 /** Joue un cas : rend la vue publiée ET les verdicts complets. */
 async function playCase(
   kase: BancCase, oracle: OracleState, passes: number,
-  agent: AgentUnderTest, mode: TrackedMode,
+  agent: AgentUnderTest, mode: TrackedMode, trace?: TraceTour,
 ): Promise<{ record: RealCaseRecord; verdicts: readonly Verdict[] }> {
   const played = await playPasses(kase, passes, agent, { runId: 'demo:reel', mode });
   const verdicts: Verdict[] = [];
@@ -121,8 +148,13 @@ async function playCase(
     tokens: played.passages.map((passage) => passage.tokens),
     cost: played.passages.reduce((total, passage) => total + passage.costEstimate, 0),
     citations: played.passages.reduce((total, passage) => total + passage.answer.citations.length, 0),
+    citationsFondees: played.passages.reduce(
+      (total, passage) => total + passage.answer.citations.filter((c) => c.resolved !== null).length, 0),
     verdicts: withStab.map((verdict) => ({ gauge: verdict.gauge, kind: verdict.kind, value: verdict.value })),
     crack: crack?.attribution ?? null,
+    modeleServi: trace?.modeleServi ?? null,
+    docsLus: trace?.docsLus ?? [],
+    tours: trace?.tours ?? 0,
   };
   return { record, verdicts: withStab };
 }
@@ -146,6 +178,7 @@ function buildReport(
   cases: readonly BancCase[], passes: number, oracles: Record<string, OracleState>,
   verdicts: readonly Verdict[], records: readonly RealCaseRecord[],
   priceUsdPerThousandTokens: number, model: string, provider: string, mode: TrackedMode,
+  corpus: typeof REAL_CORPUS,
 ): RealRunRecord {
   const tokens = records.reduce((total, item) => total + item.tokens.reduce((a, b) => a + b, 0), 0);
   const cost = (tokens / 1000) * priceUsdPerThousandTokens;
@@ -165,13 +198,24 @@ function buildReport(
   return {
     meta: {
       model, provider, recordedAt: new Date().toISOString(), passes, mode,
-      priceUsdPerThousandTokens, note: 'Live — le modèle a répondu en direct, le banc a mesuré. La clé n\'a jamais quitté le serveur.',
+      priceUsdPerThousandTokens,
+      note: 'Live — un vrai modèle a lu de vrais fichiers du dépôt et a répondu sans que la réponse lui soit donnée. Le banc a mesuré, la clé n\'a jamais quitté le serveur.',
+      corpus: {
+        commit: corpus.meta.commit, capture: corpus.meta.capturéLe, depot: corpus.meta.dépôt,
+        documents: corpus.documents.length, empreinte: corpus.meta.empreinteEnsemble,
+        sceauValide: sceauValide(corpus), sources: corpus.meta.sources,
+      },
     },
     totals: {
-      cases: cases.length, calls: cases.length * passes, tokens, costUsd: cost,
+      cases: cases.length, calls: cases.length * passes,
+      tours: records.reduce((total, item) => total + item.tours, 0),
+      tokens, costUsd: cost,
       latencyMeanMs: latencies.reduce((a, b) => a + b, 0) / Math.max(1, latencies.length),
       latencyMaxMs: Math.max(0, ...latencies),
       citationsEmitted: records.reduce((total, item) => total + item.citations, 0),
+      citationsFondees: records.reduce((total, item) => total + item.citationsFondees, 0),
+      documentsLus: new Set(records.flatMap((item) => item.docsLus)).size,
+      modeleservis: [...new Set(records.map((item) => item.modeleServi).filter((m): m is string => Boolean(m)))].sort(),
     },
     scorecard: scorecard.rows.map((row) => ({
       gauge: row.gauge, n: row.n, value: row.value, floor: row.floor, ciLow: row.ciLow, ciHigh: row.ciHigh,
@@ -185,18 +229,23 @@ function buildReport(
 export async function runRealBench(options: RealBenchOptions, agentFactory: AgentFactory): Promise<RealRunRecord> {
   const passes = options.passes ?? 3;
   const mode = options.mode ?? 'noir';
+  const corpus = options.corpus ?? REAL_CORPUS;
   const oracles = await computeOracles(options.cases, options.registry);
-  const agent = agentFactory({ cases: options.cases, oracles, registry: options.registry });
+  const traces = new Map<string, TraceTour>();
+  const agent = agentFactory({
+    cases: options.cases, oracles, registry: options.registry,
+    trace: (caseId, tour) => traces.set(caseId, tour),
+  });
   const records: RealCaseRecord[] = [];
   const verdicts: Verdict[] = [];
   for (const kase of options.cases) {
-    const played = await playCase(kase, oracles[kase.id] as OracleState, passes, agent, mode);
+    const played = await playCase(kase, oracles[kase.id] as OracleState, passes, agent, mode, traces.get(kase.id));
     records.push(played.record);
     verdicts.push(...played.verdicts);
     options.onCasePlayed?.(kase.id, records.length, options.cases.length);
   }
   return buildReport(
     options.cases, passes, oracles, verdicts, records,
-    options.priceUsdPerThousandTokens, options.model, options.provider, mode,
+    options.priceUsdPerThousandTokens, options.model, options.provider, mode, corpus,
   );
 }

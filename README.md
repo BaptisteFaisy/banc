@@ -115,9 +115,13 @@ cases".
 git clone git@github.com:BaptisteFaisy/banc.git
 cd banc
 npm install
-npm test            # 100+ tests, including the 22-point acceptance suite
+npm test            # 200+ tests, including the 22-point acceptance suite
 npm run seed        # writes the demo corpus to dist/seed/
 npm run site:dev    # the public demo site
+
+# the real bench: this repository is the organisation under test
+node tools/capture-real-corpus.mjs            # -> src/real/corpus.json (sealed)
+INFERHUB_API_KEY=… npm run demo:real          # -> site/public/real-run.json
 ```
 
 The demo bench ships **40 cases** in the bench space: 15 derived values, 10
@@ -126,7 +130,21 @@ living rules, 8 expected refusals, 7 baits — plus three versions of one agent:
 grounding) and **v6** (repairs grounding but breaks stability). Judges see it
 immediately, with no configuration.
 
-See [`docs/JUDGES.md`](docs/JUDGES.md) for the seven-step walkthrough.
+Two benches, two purposes, labelled on the page and never confused:
+
+- **the seeded bench** (40 cases, three versions of one agent) runs on a
+  **fictional** organisation, on purpose: it is reproducible, and a judge sees
+  the whole story in two minutes with no configuration.
+- **the real bench** (`src/real/`) runs on **this repository**: 19 real files,
+  the commits in `git log`, the PRs and CI runs on GitHub, captured and sealed
+  by SHA-256. Sixteen questions — 10 derived values, 3 living rules, 3 expected
+  refusals. The oracle is recomputed from those bytes on every pass, and the
+  agent is never given the answer: it gets an index, asks for a file, and
+  answers from what it read.
+
+See [`docs/JUDGES.md`](docs/JUDGES.md) for the seven-step walkthrough and
+[`docs/DEMO-DIRECT.md`](docs/DEMO-DIRECT.md) for how the live demo reaches the
+model without ever leaking the key.
 
 ---
 
@@ -173,6 +191,9 @@ promise:
 | the bench stops at the budget and says so | `RunState 'stopped_budget'`, `BudgetUsage.exhausted` |
 | the agent under test never self-evaluates | `assertCanReadBench` rejects an agent caller |
 | reproducibility | same condition per version, fingerprint drift invalidates a run |
+| a citation must resolve to a real document | `judgeCitationVivante` reaches *unfounded* / *not live* / *grounded*; none is a constant |
+| **a demo never tells the agent the answer** | `tests/real/no-script.test.ts` asserts no oracle value reaches the prompt, and no document block is served before the agent asks |
+| a sealed corpus that lies is refused | `sceauValide` hashes the bytes served, not the JSON's self-declared fields; `createRepoAdapter` throws on a broken seal |
 
 See [`docs/HONNETETE.md`](docs/HONNETETE.md) for where each one is proved.
 
@@ -216,6 +237,8 @@ statistiques.
 | `SKILL.md` | `before-promoting-an-agent`, published as open source |
 | `src/` | the app |
 | `tests/` | unit tests + the 22-point acceptance suite |
+| `src/real/` | the real corpus: sealed capture, derivations, provenance, 16 cases |
+| `tools/capture-real-corpus.mjs` | captures the repository into `src/real/corpus.json` |
 | `site/` | the public demo site |
 | `server/` | the live-demo proxy, the tunnel supervisor and its URL publisher |
 | `docs/` | spec, contracts, architecture, honesty, judges, runbook, roadmap |

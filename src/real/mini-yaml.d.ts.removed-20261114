@@ -1,0 +1,25 @@
+/**
+ * Déclaration du parseur YAML minimaliste de `tools/lib/mini-yaml.mjs`.
+ *
+ * Le garde du manifeste (`tools/check-manifest.mjs`) et les dérivations du
+ * corpus réel (`src/real/derive.ts`) lisent le même YAML avec la même
+ * implémentation : une seule source de vérité, pas deux analyseurs qui
+ * pourraient diverger sur le même fichier. Ce fichier ne fait que typer
+ * l'export JavaScript existant — aucune logique n'y vit.
+ */
+declare module '../tools/lib/mini-yaml.mjs' {
+  /** Retire un commentaire « # … » hors guillemets. */
+  export function stripComment(line: string): string;
+  /** Découpe le texte en jetons {indent, text, raw}. */
+  export function tokenize(text: string): readonly { indent: number; text: string; raw: string }[];
+  /** Enlève les guillemets simples ou doubles d'un scalaire. */
+  export function unquote(text: string): string;
+  /** Convertit un scalaire YAML (booléen, nombre, null, chaîne quotée). */
+  export function parseScalar(text: string): unknown;
+  /** Sépare `clé: valeur` ; null si la ligne n'est pas un mapping. */
+  export function splitKey(text: string): readonly [string, string] | null;
+  /** Parse un document YAML : mapping, suite ou scalaire. */
+  export function parseMiniYaml(text: string): unknown;
+}
+
+export {};

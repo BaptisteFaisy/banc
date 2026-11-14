@@ -55,6 +55,20 @@ FORBIDDEN_PATTERNS = [
      "date antérieure au 26/10 19 h (citer « relevé antérieur, hors de cet arbre »)", None),
 ]
 
+# Artefacts de capture : la copie AU BYTE PRÈS d'un arbre réel (le corpus scellé
+# du banc, `tools/capture-real-corpus.mjs`). Seule la règle d'ANCIENNETÉ y est
+# levée : un fichier fidèle contient les dates que le fichier contient, et
+# refuser la capture reviendrait à falsifier une vérité pour satisfaire une
+# garde — l'inverse exact de ce que le banc cherche à attraper. Les motifs de
+# SECRET s'y appliquent toujours : une capture peut charrier un jeton.
+# Levée déclarée le 14/11 (PR « corpus réel »), avec la mention GUARD_FLAG
+# exigée par le gel des fichiers de garde.
+CAPTURE_FILES = ("src/real/corpus.json",)
+
+# La règle d'ancienneté, désignée par son libellé plutôt que par un index : si
+# le motif change de place, la levée le suit, au lieu de tomber en silence.
+REGLE_ANCIENNETE = next(m for _p, m, _x in FORBIDDEN_PATTERNS if m.startswith("date antérieure"))
+
 
 def api_get(path, token):
     """GET sur l'API GitHub, retourne du JSON décodé."""
@@ -215,6 +229,8 @@ def check_forbidden(files, body, errors):
             continue
         for rx, message, exempt in compiled:
             if exempt and exempt in line:
+                continue
+            if path in CAPTURE_FILES and message == REGLE_ANCIENNETE:
                 continue
             if rx.search(line):
                 errors.append("forbidden : %s — `%s` dans %s" % (message, line.strip()[:90], path))

@@ -12,13 +12,11 @@
  * rapporte la progression, et rend le résultat quand le banc a fini.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { runRealBench } from '../../src/demo/real-bench.js';
+import { runRealBench, DEMO_CASES } from '../../src/demo/real-bench.js';
 import type { RealRunRecord } from '../../src/demo/real-bench.js';
 import { proxyAgentFactory } from '../../src/demo/real-agent.js';
 import type { ProxyCandidate } from '../../src/demo/proxy-endpoint.js';
-import { seededRegistry } from '../../src/demo/sources.js';
-import { SEED_CASES } from '../../src/seed/index.js';
-import { DEMO_CASE_IDS } from '../../src/demo/real-bench.js';
+import { registreReel } from '../../src/real/adapter.js';
 import { candidatesDuProxy, sonderCandidates, proxyVivant } from './proxy-resolve';
 
 /** État de la découverte du proxy, affiché tel quel (jamais la couleur seule). */
@@ -59,9 +57,9 @@ export interface LiveRunState {
   readonly proxy: ProxyDiscovery;
 }
 
-/** Les cas du banc, dans l'ordre du corpus semé. */
+/** Les cas du banc : le corpus RÉEL du dépôt, jamais un monde inventé. */
 function casDuBanc() {
-  return SEED_CASES.filter((item) => (DEMO_CASE_IDS as readonly string[]).includes(item.id));
+  return DEMO_CASES;
 }
 
 /** Les candidates à utiliser : on resonde si la découverte a échoué. */
@@ -93,7 +91,7 @@ export function useLiveRun(): LiveRunState & { start: () => Promise<void> } {
       const candidats = await candidatsPourLeRun(proxy);
       const result = await runRealBench(
         {
-          cases: casDuBanc(), registry: seededRegistry(), priceUsdPerThousandTokens: 0.0003,
+          cases: casDuBanc(), registry: registreReel(), priceUsdPerThousandTokens: 0.0003,
           model: 'combo/cheap', provider: 'inferhub.dev (via proxy)', passes: 3, mode: 'noir',
           onCasePlayed: (caseId, done, total) => setState((a) => ({ ...a, progress: { done, total, caseId } })),
         },

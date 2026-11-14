@@ -117,6 +117,26 @@ class ForbiddenTest(unittest.TestCase):
             [fichier("docs/N.md", "+ relevé du " + vieux)], "corps", erreurs)
         self.assertEqual(len(erreurs), 1)
 
+    def test_capture_fidele_nest_pas_refusee_pour_ses_dates(self):
+        # Une capture au byte près contient les dates du fichier capturé. La
+        # lever serait falsifier la vérité pour satisfaire une garde.
+        vieux = "2026-10-2" + "4"
+        erreurs = []
+        check_couche0.check_forbidden(
+            [fichier("src/real/corpus.json", '+ "contenu": "# Règle user ' + vieux)],
+            "## Scope\n\n- `src/real/` — x\n", erreurs)
+        self.assertEqual(erreurs, [], "une capture fidèle ne doit pas être refusée pour ses dates")
+
+    def test_capture_porte_quand_meme_un_jeton(self):
+        # La levée ne porte QUE sur l'ancienneté : un secret dans une capture
+        # reste refusé.
+        cle = "sk-" + "a" * 30
+        erreurs = []
+        check_couche0.check_forbidden(
+            [fichier("src/real/corpus.json", '+ "contenu": "' + cle + '"')],
+            "## Scope\n\n- `src/real/` — x\n", erreurs)
+        self.assertEqual(len(erreurs), 1, erreurs)
+
     def test_date_recente_acceptee(self):
         erreurs = []
         check_couche0.check_forbidden(

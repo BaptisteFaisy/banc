@@ -302,7 +302,10 @@ export default function Demo() {
       id="demo"
       eyebrow="Demo"
       title="The seeded bench, in four views"
-      intro="One agent, three versions, forty cases. These are the views a judge sees after two minutes of running the bench."
+      intro="A fictional organisation on purpose: one agent, three versions, forty cases, so that the
+        scenario is reproducible and a judge sees the views after two minutes. This is the
+        scenario view — the section above (“Real environment”) runs the same engine on this
+        repository’s own files, where nobody knows the answer in advance."
     >
       <div className="demo">
         <div className="tabs" role="tablist" aria-label="Demo views" onKeyDown={onKeyDown}>
