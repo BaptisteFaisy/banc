@@ -10,7 +10,19 @@
 import { useRealRun } from '../use-real-run';
 import type { RealRunRecord } from '../use-real-run';
 import { useLiveRun } from '../live-run';
+import type { EtatProxy } from '../live-run';
 import { Section, StateChip } from '../ui';
+
+/** L'état du proxy direct, double-codé : un mot, jamais la couleur seule. */
+function ProxyChip({ status }: { readonly status: EtatProxy }): JSX.Element {
+  const map = {
+    'en-ligne': { tone: 'ok', label: 'proxy online' },
+    'hors-ligne': { tone: 'bad', label: 'proxy offline' },
+    inconnu: { tone: 'warn', label: 'proxy: probing' },
+  } as const;
+  const etat = map[status];
+  return <StateChip tone={etat.tone} label={etat.label} />;
+}
 
 /** Un état de jauge : jamais la couleur seule, toujours un mot (§25). */
 function statusOf(value: number | null, floor: number): { label: string; tone: 'ok' | 'bad' | 'warn' } {
@@ -122,6 +134,8 @@ export default function RealRun() {
           {live.running ? 'Running the bench…' : '▶ Run live now'}
         </button>
         <StateChip tone={live.result ? 'ok' : 'info'} label={live.result ? 'LIVE' : 'recorded'} />
+        <ProxyChip status={live.proxy.status} />
+        {live.proxy.url && <span className="mono real__proxy-url">{live.proxy.url}</span>}
         {live.running && live.progress && (
           <span role="status" className="real__progress">
             case {live.progress.done}/{live.progress.total} — {live.progress.caseId}

@@ -217,7 +217,9 @@ statistiques.
 | `src/` | the app |
 | `tests/` | unit tests + the 22-point acceptance suite |
 | `site/` | the public demo site |
+| `server/` | the live-demo proxy, the tunnel supervisor and its URL publisher |
 | `docs/` | spec, contracts, architecture, honesty, judges, runbook, roadmap |
+| `docs/DEMO-DIRECT.md` | how the live demo stays reachable (ephemeral tunnel URL) |
 | `.github/hermes/` | the conflict resolver and its InferHub leg |
 
 ---
